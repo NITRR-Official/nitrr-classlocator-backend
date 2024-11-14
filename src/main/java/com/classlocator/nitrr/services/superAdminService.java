@@ -1,5 +1,5 @@
 package com.classlocator.nitrr.services;
 
-public class superAdminService {
+public class superAdminService  {
     
 }

@@ -1,6 +1,9 @@
 package com.classlocator.nitrr.controller;
 
-//This will expose the super admin endpoints to be used by the frontend
+import org.springframework.web.bind.annotation.RestController;
+
+//This will expose the super admin endpoints to be used by the frontend to be developed by other team members
+@RestController
 public class superAdminController {
     
 }

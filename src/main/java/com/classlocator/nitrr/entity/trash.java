@@ -3,6 +3,7 @@ package com.classlocator.nitrr.entity;
 
 import java.util.Date;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -16,10 +17,10 @@ import lombok.NoArgsConstructor;
 @Document(collection = "trash")
 public class trash {
     @Id
-    private Object id;
+    private ObjectId id;
 
     @NonNull
-    private Object query;
+    private ObjectId query;
 
     private boolean isSuperAdmin = false;
     private boolean admin = false;

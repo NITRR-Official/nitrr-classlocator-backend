@@ -1,34 +1,39 @@
 package com.classlocator.nitrr.entity;
 
-import java.util.Date;
-
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mongodb.lang.NonNull;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Document(collection = "queries")
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 @Data
 public class query {
     @Id
-    private Object id;
+    private ObjectId id;
 
     @NonNull
-    private Date date;
+    private String date;
     @NonNull
-    private int Roomid;
+    @JsonProperty("Roomid")
+    private Integer Roomid;
     @NonNull
     private String name;
     @NonNull
-    private String descrption;
+    private String description;
     @NonNull
-    private Object raisedBy;
+    private String raisedBy;
     
-    private int votes = 0;
-    private boolean superAdmin = false;
+    private int votes;
+    private boolean superAdmin;
 
 }
