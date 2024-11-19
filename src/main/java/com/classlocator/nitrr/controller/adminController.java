@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.classlocator.nitrr.entity.admin;
@@ -33,7 +34,7 @@ public class adminController {
 
     @PostMapping("/signup")
     public ResponseEntity<String> createUser(@RequestBody admin user) {
-        int status = admins.saveNewAdmin(user);
+        int status = admins.saveUpdateNewAdmin(user);
         if(status == 1) return new ResponseEntity<String>("Admin verification was successful", HttpStatus.CREATED);
         else if(status == 0) return new ResponseEntity<String>("Admin already exists.", HttpStatus.BAD_REQUEST);
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -58,9 +59,9 @@ public class adminController {
     }
 
     @PostMapping("/vote/{id}")
-    public ResponseEntity<String> voting(@PathVariable("id") String id)
+    public ResponseEntity<String> voting(@PathVariable("id") String id, @RequestParam("id") int roll)
     {
-        int status = admins.voting(id);
+        int status = admins.voting(id, roll);
         if(status == 1) return new ResponseEntity<>("Vote successfully", HttpStatus.OK);
         else if(status == 0) return new ResponseEntity<>("Vote not applied", HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>("Something went wrong.", HttpStatus.INTERNAL_SERVER_ERROR);
