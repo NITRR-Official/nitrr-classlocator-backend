@@ -1,6 +1,7 @@
 package com.classlocator.nitrr.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,12 +29,13 @@ public class adminService extends comService {
     public int saveUpdateNewAdmin(admin user) {
         try {
             admin temp = adminRe.findByrollno(user.getRollno());
-            if(temp != null) return 0;
-
-            user.setName(user.getName());
-            user.setDepartment(user.getDepartment());
-            user.setRollno(user.getRollno());
-            user.setPassword(user.getPassword());
+            if(temp != null){
+                temp.setName(user.getName());
+                temp.setDepartment(user.getDepartment());
+                temp.setPassword(user.getPassword());
+                adminRe.save(temp);
+                return 2;
+            }
             adminRe.save(user);
             return 1;
         } catch (Exception e) {
@@ -53,17 +55,20 @@ public class adminService extends comService {
         }
     }    
 
-    public int voting(String id, int roll)
+    public int voting(int roll, String id)
     {
         try {
+            System.out.println(roll+" "+id);
             ObjectId objectId = new ObjectId(id);
             Optional<query> q = queryR.findById(objectId);
-            if (q.isPresent()) {
+            if (q.isPresent() && (adminRe.findByrollno(roll) != null)) {
                 query temp = q.get();
-                // temp.setVotes(temp.getVotes()+1);
-                if(!temp.getVotes().containsKey(roll)) temp.getVotes().put(roll,true);
+                if(temp.getVotes() == null) {
+                    temp.setVotes(new HashMap<Integer, Boolean>());
+                }
+                if(!temp.getVotes().containsKey(roll) && (roll != Integer.parseInt(temp.getRaisedBy()))) 
+                temp.getVotes().put(roll,true);
                 else return 2;
-                isApproved(temp);
                 queryR.save(temp);
                 return 1;
             } else {

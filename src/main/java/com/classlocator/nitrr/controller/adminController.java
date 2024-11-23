@@ -1,11 +1,8 @@
 package com.classlocator.nitrr.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,16 +24,13 @@ public class adminController {
     private adminService admins;
 
 
-    @GetMapping("/check")
-    public ResponseEntity<String> check(){
-        return new ResponseEntity<String>("Yeah..., the setup is running...", HttpStatus.OK);
-    }
+    
 
     @PostMapping("/signup")
     public ResponseEntity<String> createUser(@RequestBody admin user) {
         int status = admins.saveUpdateNewAdmin(user);
         if(status == 1) return new ResponseEntity<String>("Admin verification was successful", HttpStatus.CREATED);
-        else if(status == 0) return new ResponseEntity<String>("Admin already exists.", HttpStatus.BAD_REQUEST);
+        else if(status == 2) return new ResponseEntity<String>("Admin details updated.", HttpStatus.OK);
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -49,21 +43,15 @@ public class adminController {
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @GetMapping("/getAllQueries")
-    public ResponseEntity<?> getAllQueries() {
-        List<query> all = admins.getAllQueries();
-        if (all != null && !all.isEmpty()) {
-            return new ResponseEntity<>(all, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
+    
 
-    @PostMapping("/vote/{id}")
-    public ResponseEntity<String> voting(@PathVariable("id") String id, @RequestParam("id") int roll)
+    @PostMapping("/vote")
+    public ResponseEntity<String> voting(@RequestParam("rollno") int rollno, @RequestParam("id") String id)
     {
-        int status = admins.voting(id, roll);
+        int status = admins.voting(rollno, id);
         if(status == 1) return new ResponseEntity<>("Vote successfully", HttpStatus.OK);
         else if(status == 0) return new ResponseEntity<>("Vote not applied", HttpStatus.BAD_REQUEST);
+        else if(status == 2) return new ResponseEntity<>("Vote already applied.", HttpStatus.OK);
         return new ResponseEntity<>("Something went wrong.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

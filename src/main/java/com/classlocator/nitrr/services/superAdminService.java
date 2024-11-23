@@ -2,25 +2,31 @@ package com.classlocator.nitrr.services;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Optional;
 
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.entity.superAdmin;
 import com.classlocator.nitrr.entity.trash;
+import com.classlocator.nitrr.repository.queryRepo;
 import com.classlocator.nitrr.repository.superAdminRepo;
 
+@Service
 public class superAdminService extends comService {
 
     @Autowired
     private superAdminRepo sAdmin;
 
+    @Autowired
+    private queryRepo queryR;
 
     public int saveUpdateSuperAdmin(superAdmin user) {
         try {
             List<superAdmin> check = sAdmin.findAll();
             if(check.size() > 1) return 0;
-
-            user.setName(user.getName());
-            user.setPassword(user.getPassword());
             sAdmin.save(user);
             return 1;
         } catch (Exception e) {
@@ -44,7 +50,21 @@ public class superAdminService extends comService {
     {
         try {
             //Direct rejection/approval is handled here
-            return 1;
+
+            //IsAuthorized or not is handled here
+
+            ObjectId objectId = new ObjectId(id);
+            Optional<query> q = queryR.findById(objectId);
+            if (q.isPresent()) {
+                query temp = q.get();
+                temp.setSuperAdmin(true);
+                int appStatus = updateSearchTool(temp);
+                if(appStatus == -1) return -1;
+                queryR.save(temp);
+                return 1;
+            } else {
+                return 0;
+            }
         } catch (Exception e) {
             System.out.println(e.toString());
             return -1;
