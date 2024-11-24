@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.entity.superAdmin;
 import com.classlocator.nitrr.services.superAdminService;
 
@@ -31,12 +32,22 @@ public class superAdminController {
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @PostMapping("/raiseQuery")
+    public ResponseEntity<String> raiseQuery(@RequestBody query q) {
+        System.out.print("From super admin: " + q.toString());
+        int status = sadmins.saveQuery(q);
+        if(status == 1) return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
+        else if(status == 0) return new ResponseEntity<String>("Not the authorized admin.", HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @PostMapping("/approve")
     public ResponseEntity<String> voting(@RequestParam("id") String id)
     {
         int status = sadmins.approval(id);
         if(status == 1) return new ResponseEntity<>("Approved", HttpStatus.OK);
         else if(status == 0) return new ResponseEntity<>("Query not found", HttpStatus.BAD_REQUEST);
+        else if(status == -1) return new ResponseEntity<>("Vote already applied", HttpStatus.OK);
         return new ResponseEntity<>("Something went wrong.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

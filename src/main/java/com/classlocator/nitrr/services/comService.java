@@ -3,20 +3,20 @@ package com.classlocator.nitrr.services;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.tuple.Pair;
-
+import com.classlocator.nitrr.interfaces.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.classlocator.nitrr.entity.admin;
 import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.entity.searchTool;
+import com.classlocator.nitrr.entity.superAdmin;
 import com.classlocator.nitrr.repository.adminRepo;
 import com.classlocator.nitrr.repository.queryRepo;
 import com.classlocator.nitrr.repository.searchToolRepo;
+import com.classlocator.nitrr.repository.superAdminRepo;
 
 @Service
 public class comService {
@@ -27,6 +27,9 @@ public class comService {
 
     @Autowired
     private queryRepo queryR;
+
+    @Autowired
+    private superAdminRepo sadminRe;
 
     @Autowired
     private searchToolRepo search;
@@ -62,28 +65,22 @@ public class comService {
         // After approval this function will update the searchTool in mongodb and will
         // update the maps
         try {
-            Optional<searchTool> s = search.findById(q.getRoomid());
-            if (s.isPresent()) {
-                searchTool temp = s.get();
-                if (temp.getData().containsKey(q) || temp.getData().containsKey(q))
-                    return -1;
-                else {
-                    temp.getData().put(q.getId().toString(), Pair.of(q.getName(), q.getDescription()));
-                }
-                search.save(temp);
-                return 1;
-            } else {
-                searchTool temp = new searchTool();
-                temp.setData(new HashMap<String, Pair<String, String>>());
-                if (!temp.getData().containsKey(q.getId().toString()))
-                    temp.getData().put(q.getId().toString(), Pair.of(q.getName(), q.getDescription()));
-
-                temp.setId(q.getRoomid());
-                search.save(temp);
-                return 1;
-            }
+            Optional<searchTool> room = search.findById(q.getRoomid());
+            searchTool temp;
+            if(room.isPresent())
+                temp = room.get();
+            else
+                temp = new searchTool();
+            
+            if(temp.getData() == null)
+                temp.setData(new ArrayList<Pair<String, Pair<String, String>>>());
+            Pair<String, String> t = new Pair<String, String>(q.getName(), q.getDescription());
+            temp.getData().add(new Pair<String, Pair<String, String>>(q.getId().toString(), t));
+            temp.setId(q.getRoomid());
+            search.save(temp);
+            return 1;
         } catch (Exception e) {
-            System.out.println(e.toString());
+            System.out.println("Exception raised from update search tool: "+e.toString());
             return -1;
         }
 
@@ -126,17 +123,9 @@ public class comService {
         }
     }
 
-    public int saveQuery(query q, Integer s) {
+    private query processQuery(query q, Integer s)
+    {
         try {
-            admin user = adminRe.findByrollno(s);
-
-            if (user == null)
-                return 0;
-
-            q.setName(q.getName());
-            q.setDescription(q.getDescription());
-            // System.out.println(q.getRoomid());
-            q.setRoomid(q.getRoomid());
             q.setSuperAdmin(false);
             q.setRaisedBy(s.toString());
 
@@ -145,11 +134,54 @@ public class comService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDate = currentDate.format(formatter);
             q.setDate(formattedDate);
-            query temp = queryR.save(q);
+            return queryR.save(q);
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println(e.toString());
+            return null;
+        }
+    }
+    
+    public int saveQuery(query q)
+    {
+        try {
+            // admin user = adminRe.findByrollno(s);
+            System.out.println(q.toString());
+            List<superAdmin> suser = sadminRe.findAll();
+            if (suser.isEmpty())
+                return 0;
 
             // Getting the admin data and setting the arraylist and updating it...
 
-            user.getPendingQueries().add(temp);
+            query temp = processQuery(q, 1);
+            if(temp != null)
+            {
+                for (superAdmin ele : suser) {
+                    if(temp != null) {
+                        ele.getPendingQueries().add(temp);
+                    }
+                    sadminRe.save(ele);
+                }
+            }  
+            else return -1;
+            return 1;
+        } catch (Exception e) {
+            System.out.print(e.toString());
+            return -1;
+        }
+    }
+    
+    public int saveQuery(query q, Integer s) {
+        try {
+            admin user = adminRe.findByrollno(s);
+            
+            if (user == null)
+                return 0;
+
+            // Getting the admin data and setting the arraylist and updating it...
+            query temp = processQuery(q, s);
+            if(temp != null) user.getPendingQueries().add(temp); 
+            else return -1;
             adminRe.save(user);
             return 1;
         } catch (Exception e) {

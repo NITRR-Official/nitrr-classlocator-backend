@@ -1,10 +1,11 @@
 package com.classlocator.nitrr.entity;
 
-import java.util.HashMap;
+import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import com.classlocator.nitrr.interfaces.Pair;
+
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class searchTool {
     @Id
-    private int id;
+    private Integer id;
 
-    private HashMap<String, Pair<String, String>> data;
+    private List<Pair<String, Pair<String, String>>> data;
 }

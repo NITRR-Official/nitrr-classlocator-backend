@@ -57,9 +57,11 @@ public class superAdminService extends comService {
             Optional<query> q = queryR.findById(objectId);
             if (q.isPresent()) {
                 query temp = q.get();
-                temp.setSuperAdmin(true);
+                if(!temp.isSuperAdmin())
+                    temp.setSuperAdmin(true);
+                else return -1;
                 int appStatus = updateSearchTool(temp);
-                if(appStatus == -1) return -1;
+                if(appStatus == -1) return -2;
                 queryR.save(temp);
                 return 1;
             } else {
@@ -67,7 +69,7 @@ public class superAdminService extends comService {
             }
         } catch (Exception e) {
             System.out.println(e.toString());
-            return -1;
+            return -2;
         }
     }
 

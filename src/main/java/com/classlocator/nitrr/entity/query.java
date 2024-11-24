@@ -36,6 +36,7 @@ public class query {
     private String raisedBy;
     
     private HashMap<Integer, Boolean> votes;
-    private boolean superAdmin;
+    @Builder.Default
+    private boolean superAdmin = false;
 
 }
