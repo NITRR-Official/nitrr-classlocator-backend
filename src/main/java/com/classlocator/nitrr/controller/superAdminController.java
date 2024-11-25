@@ -35,7 +35,7 @@ public class superAdminController {
     @PostMapping("/raiseQuery")
     public ResponseEntity<String> raiseQuery(@RequestBody query q) {
         System.out.print("From super admin: " + q.toString());
-        int status = sadmins.saveQuery(q);
+        int status = sadmins.saveQuery(q,0);
         if(status == 1) return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
         else if(status == 0) return new ResponseEntity<String>("Not the authorized admin.", HttpStatus.UNAUTHORIZED);
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);

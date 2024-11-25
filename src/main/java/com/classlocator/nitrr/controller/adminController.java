@@ -36,7 +36,7 @@ public class adminController {
 
     @PostMapping("/raiseQuery/{id}")
     public ResponseEntity<String> raiseQuery(@RequestBody query q, @PathVariable("id") Integer id) {
-        int status = admins.saveQuery(q,id);
+        int status = admins.saveQuery(q,id,0);
         System.out.print(q.toString());
         if(status == 1) return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
         else if(status == 0) return new ResponseEntity<String>("Not the authorized admin.", HttpStatus.UNAUTHORIZED);

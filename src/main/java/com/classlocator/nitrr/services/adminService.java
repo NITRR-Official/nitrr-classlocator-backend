@@ -6,23 +6,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.classlocator.nitrr.entity.admin;
 import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.entity.trash;
-import com.classlocator.nitrr.repository.adminRepo;
-// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import com.classlocator.nitrr.repository.queryRepo;
 
 @Service
 public class adminService extends comService {
-    @Autowired
-    private adminRepo adminRe;
-
-    @Autowired
-    private queryRepo queryR;
 
     // private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
