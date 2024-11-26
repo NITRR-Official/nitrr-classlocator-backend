@@ -1,11 +1,13 @@
 package com.classlocator.nitrr.services;
 
+import java.io.FileReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import com.classlocator.nitrr.interfaces.Pair;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ import com.classlocator.nitrr.repository.adminRepo;
 import com.classlocator.nitrr.repository.queryRepo;
 import com.classlocator.nitrr.repository.searchToolRepo;
 import com.classlocator.nitrr.repository.superAdminRepo;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 @Service
 public class comService {
@@ -59,30 +63,28 @@ public class comService {
         return false;
     }
 
-    private admin removePending(admin user, query q)
-    {
+    private admin removePending(admin user, query q) {
         boolean removed = false;
         try {
             removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
             if (removed) {
                 return user;
-            }
-            else return null;
+            } else
+                return null;
         } catch (Exception e) {
             System.out.println(e.toString());
             return null;
         }
     }
 
-    private superAdmin removePending(superAdmin user,query q)
-    {
+    private superAdmin removePending(superAdmin user, query q) {
         boolean removed = false;
         try {
             removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
             if (removed) {
                 return user;
-            }
-            else return null;
+            } else
+                return null;
         } catch (Exception e) {
             System.out.println(e.toString());
             return null;
@@ -90,11 +92,45 @@ public class comService {
     }
     // The below functionality is to be applied as soon as possible
 
-    private boolean generateMap(){
-        //First it will always check whether the searchTool exists or not for all 301 rooms 
-        //if it exist then it will create new map, otherwise it will first fill all the details in mongodb
-        //using version 1 searchTool.json file created in 2022.
-        
+    public boolean searchTools() {
+        // File path to your JSON file
+        String filePath = "D:\\Learn Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
+
+        try {
+            // Parse the JSON file
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(filePath));
+
+            // Loop through JSON and prepare MongoDB documents
+            for (Object key : jsonObject.keySet()) {
+                String id = (String) key;
+                JSONObject valueObj = (JSONObject) jsonObject.get(id);
+                searchTool s = new searchTool();
+                s.setId(Integer.parseInt(id));
+
+
+                if(s.getData() == null) s.setData(new ArrayList<Pair<String, Pair<String, String>>>());
+                
+                Pair<String, String> p = new Pair<String,String>(valueObj.get("name").toString(), valueObj.get("details").toString());
+                s.getData().add(new Pair<String, Pair<String, String>> ("1", p));
+                search.save(s);
+            }
+            System.out.println("Data successfully inserted into MongoDB!");
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.toString());
+            return false;
+        }
+    }
+
+    private boolean generateMap() {
+        // First it will always check whether the searchTool exists or not for all 301
+        // rooms
+        // if it exist then it will create new map, otherwise it will first fill all the
+        // details in mongodb
+        // using version 1 searchTool.json file created in 2022.
+
         return true;
     }
 
@@ -104,36 +140,36 @@ public class comService {
         try {
             Optional<searchTool> room = search.findById(q.getRoomid());
             searchTool temp;
-            if(room.isPresent())
+            if (room.isPresent())
                 temp = room.get();
             else
                 temp = new searchTool();
-            
-            if(temp.getData() == null)
+
+            if (temp.getData() == null)
                 temp.setData(new ArrayList<Pair<String, Pair<String, String>>>());
             Pair<String, String> t = new Pair<String, String>(q.getName(), q.getDescription());
             temp.getData().add(new Pair<String, Pair<String, String>>(q.getId().toString(), t));
             temp.setId(q.getRoomid());
 
-            
-            
-            //Generate new map here and will save the new map to toJSON entity
-            if(generateMap()) {
-                //Now after successful generation of new map, the query will move to approved list
+            // Generate new map here and will save the new map to toJSON entity
+            if (generateMap()) {
+                // Now after successful generation of new map, the query will move to approved
+                // list
 
-                //Here moving to pending will take place, as if something goes wrong then no further updates allowed 
-                //so that it will act as transactional system
+                // Here moving to pending will take place, as if something goes wrong then no
+                // further updates allowed
+                // so that it will act as transactional system
                 int approvalDB = isSuperAdmin ? saveQuery(q, 1) : saveQuery(q, Integer.parseInt(q.getRaisedBy()), 1);
-                if(approvalDB == -1) {
-                    //rollback the generateMap() and return -1
+                if (approvalDB == -1) {
+                    // rollback the generateMap() and return -1
                     return -1;
                 }
-                search.save(temp); 
+                search.save(temp);
                 return 1;
-            }
-            else return -1;
+            } else
+                return -1;
         } catch (Exception e) {
-            System.out.println("Exception raised from update search tool: "+e.toString());
+            System.out.println("Exception raised from update search tool: " + e.toString());
             return -1;
         }
 
@@ -176,8 +212,7 @@ public class comService {
         }
     }
 
-    private query processQuery(query q, Integer s)
-    {
+    private query processQuery(query q, Integer s) {
         try {
             q.setRaisedBy(s.toString());
 
@@ -193,9 +228,8 @@ public class comService {
             return null;
         }
     }
-    
-    public int saveQuery(query q, Integer status)
-    {
+
+    public int saveQuery(query q, Integer status) {
         try {
             // admin user = adminRe.findByrollno(s);
             System.out.println(q.toString());
@@ -206,47 +240,50 @@ public class comService {
             // Getting the admin data and setting the arraylist and updating it...
 
             query temp = processQuery(q, 1);
-            if(temp != null)
-            {
+            if (temp != null) {
                 for (superAdmin ele : suser) {
-                    if(temp != null && status == 0) {
+                    if (temp != null && status == 0) {
                         ele.getPendingQueries().add(temp);
-                    }
-                    else if(temp != null && status == 1)
-                    {
+                    } else if (temp != null && status == 1) {
                         ele = removePending(ele, q);
-                        if(ele != null) ele.getAcceptedQueries().add(temp); 
-                        else return -1;
+                        if (ele != null)
+                            ele.getAcceptedQueries().add(temp);
+                        else
+                            return -1;
                     }
                     sadminRe.save(ele);
                 }
-            }  
-            else return -1;
+            } else
+                return -1;
             return 1;
         } catch (Exception e) {
             System.out.print(e.toString());
             return -1;
         }
     }
-    
+
     public int saveQuery(query q, Integer s, Integer status) {
         try {
             admin user = adminRe.findByrollno(s);
-            
+
             if (user == null)
                 return 0;
 
             // Getting the admin data and setting the arraylist and updating it...
             query temp = processQuery(q, s);
-            if(temp != null && status == 0) user.getPendingQueries().add(temp);
-            else if(temp != null && status == 1) {
-                //First we need to move the query from pending queries to accepted queries
+            if (temp != null && status == 0)
+                user.getPendingQueries().add(temp);
+            else if (temp != null && status == 1) {
+                // First we need to move the query from pending queries to accepted queries
                 user = removePending(user, q);
-                if(user != null) user.getAcceptedQueries().add(temp); 
-                else return -1;
-            }
-            else if(temp != null && status == -1) {rejectQueries(false, 0);}
-            else return -1;
+                if (user != null)
+                    user.getAcceptedQueries().add(temp);
+                else
+                    return -1;
+            } else if (temp != null && status == -1) {
+                rejectQueries(false, 0);
+            } else
+                return -1;
             adminRe.save(user);
             return 1;
         } catch (Exception e) {

@@ -95,14 +95,6 @@
       "name": "Ladies Toilet - 3 (Ground Floor)",
       "details":""
     },
-    "x33": {
-      "p34": "p41",
-      "p85": "p41"
-    },
-    "x34": {
-      "p34": "p40",
-      "p85": "p40"
-    },
     "35": {
       "name": "Measurment and Control Laboratory",
       "details": ""
@@ -211,10 +203,6 @@
       "name": "Environmental Engineering Laboratory",
       "details": "Dr. P Ghosh, Dr. J. Anandkumar, Dr. V. K. Singh, Dr. C. Thakur"
     },
-    "70": {
-      
-    },
-
     "72": {
       "name": "Makerspace",
       "details":""
@@ -242,9 +230,6 @@
     "78": {
       "name": "Stairs - 6 (Ground Floor)",
       "details": ""
-    },
-    "79": {
-      
     },
     "80": {
       "name": "Dr Manoj Pradhan Professor Mining",
