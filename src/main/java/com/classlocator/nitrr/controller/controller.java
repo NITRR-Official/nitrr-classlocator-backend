@@ -6,10 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.classlocator.nitrr.entity.query;
+import com.classlocator.nitrr.interfaces.Pair;
 import com.classlocator.nitrr.services.adminService;
 
 @RestController
@@ -17,6 +18,16 @@ public class controller {
 
     @Autowired
     private adminService admins;
+
+    @GetMapping("/download/{version}")
+    public ResponseEntity<String> map(@PathVariable("version") Integer version) {
+        Pair<Integer, String> download = admins.downloadMap(version);
+        if(download.getKey() == 1) {
+            return new ResponseEntity<>(download.getValue(), HttpStatus.OK);
+        }
+        else if(download.getKey() == 0) return new ResponseEntity<String>("Already the latest version.", HttpStatus.OK);
+        return new ResponseEntity<String>("Something went wrong, and we couldn't update.", HttpStatus.OK);
+    }
 
     @GetMapping("/check")
     public ResponseEntity<String> check(){
@@ -30,16 +41,6 @@ public class controller {
             return new ResponseEntity<>(all, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
-    @PostMapping("/generate")
-    public ResponseEntity<String> generateMap()
-    {
-        boolean status = admins.searchTools();
-        if(status) {
-            return new ResponseEntity<>("JSON to Map generation was sucessful", HttpStatus.CREATED);
-        }
-        return new ResponseEntity<>("Something went wrong...", HttpStatus.BAD_GATEWAY);
     }
 
 }
