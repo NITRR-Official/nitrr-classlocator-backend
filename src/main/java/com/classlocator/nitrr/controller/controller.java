@@ -19,6 +19,16 @@ public class controller {
     @Autowired
     private adminService admins;
 
+    @GetMapping("/generate")
+    public ResponseEntity<String> generate(){
+        
+        if(admins.searchTools())
+        {
+            return new ResponseEntity<String>("Genearted successfully...", HttpStatus.CREATED);
+        }
+        return new ResponseEntity<String>("Something went wrong...", HttpStatus.BAD_GATEWAY);
+    }
+
     @GetMapping("/download/{version}")
     public ResponseEntity<String> map(@PathVariable("version") Integer version) {
         Pair<Integer, String> download = admins.downloadMap(version);

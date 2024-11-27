@@ -1,5 +1,6 @@
 package com.classlocator.nitrr.services;
 
+import java.io.File;
 import java.io.FileReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import com.classlocator.nitrr.interfaces.Pair;
+import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -98,28 +100,36 @@ public class comService {
     }
     // The below functionality is to be applied as soon as possible
 
-    private boolean searchTools() {
+    public boolean searchTools() {
         // File path to your JSON file
-        String filePath = "D:\\Learn Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
+
+        String relativePath = "src/main/resources/templates/searchTool.json";
+        File file = Paths.get(relativePath).toFile();
+        // String filePath = "D:\\Learn Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
 
         try {
             // Parse the JSON file
             JSONParser parser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(filePath));
+            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(file));
 
             // Loop through JSON and prepare MongoDB documents
             for (Object key : jsonObject.keySet()) {
-                String id = (String) key;
-                JSONObject valueObj = (JSONObject) jsonObject.get(id);
-                searchTool s = new searchTool();
-                s.setId(Integer.parseInt(id));
-
-
-                if(s.getData() == null) s.setData(new ArrayList<Pair<String, Pair<String, String>>>());
-                
-                Pair<String, String> p = new Pair<String,String>(valueObj.get("name").toString(), valueObj.get("details").toString());
-                s.getData().add(new Pair<String, Pair<String, String>> ("1", p));
-                search.save(s);
+                try {
+                    String id = (String) key;
+                    JSONObject valueObj = (JSONObject) jsonObject.get(id);
+                    searchTool s = new searchTool();
+                    s.setId(Integer.parseInt(id));
+    
+    
+                    if(s.getData() == null) s.setData(new ArrayList<Pair<String, Pair<String, String>>>());
+                    
+                    Pair<String, String> p = new Pair<String,String>(valueObj.get("name").toString(), valueObj.get("details").toString());
+                    s.getData().add(new Pair<String, Pair<String, String>> ("1", p));
+                    search.save(s);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    System.out.println(e.toString());
+                }
             }
             System.out.println("Data successfully inserted into MongoDB!");
             return true;
