@@ -98,47 +98,8 @@ public class comService {
             return null;
         }
     }
+        
     // The below functionality is to be applied as soon as possible
-
-    public boolean searchTools() {
-        // File path to your JSON file
-
-        String relativePath = "src/main/resources/templates/searchTool.json";
-        File file = Paths.get(relativePath).toFile();
-        // String filePath = "D:\\Learn Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
-
-        try {
-            // Parse the JSON file
-            JSONParser parser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(file));
-
-            // Loop through JSON and prepare MongoDB documents
-            for (Object key : jsonObject.keySet()) {
-                try {
-                    String id = (String) key;
-                    JSONObject valueObj = (JSONObject) jsonObject.get(id);
-                    searchTool s = new searchTool();
-                    s.setId(Integer.parseInt(id));
-    
-    
-                    if(s.getData() == null) s.setData(new ArrayList<Pair<String, Pair<String, String>>>());
-                    
-                    Pair<String, String> p = new Pair<String,String>(valueObj.get("name").toString(), valueObj.get("details").toString());
-                    s.getData().add(new Pair<String, Pair<String, String>> ("1", p));
-                    search.save(s);
-                } catch (Exception e) {
-                    // TODO: handle exception
-                    System.out.println(e.toString());
-                }
-            }
-            System.out.println("Data successfully inserted into MongoDB!");
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.toString());
-            return false;
-        }
-    }
 
     @SuppressWarnings("unchecked")
     private boolean generateMap() {
@@ -146,41 +107,41 @@ public class comService {
             // Initialize JSON Object
             JSONObject jsonOutput = new JSONObject();
             List<searchTool> rooms = search.findAll();
-
+            
             //Getting whether map exist or not
             List<toJSON> mapp = searchTool.findAll();
-
+            
             //Inserting the current version here into the json file
             int versions = 0;
             if(mapp != null) {
                 versions = mapp.get(0).getMapVersion()+1;
             }
-
+            
             jsonOutput.put("version", versions);
             
             for (searchTool room : rooms) {
                 List<Pair<String, Pair<String, String>>> dataArray = room.getData();
-
+                
                 if (dataArray == null || dataArray.isEmpty()) {
                     continue; // Skip if data array is missing or empty
                 }
-
+                
                 String name = dataArray.get(dataArray.size()-1).getValue().getKey();
                 String details = dataArray.get(dataArray.size()-1).getValue().getValue();
-
+                
                 // Add to JSON output
                 JSONObject entry = new JSONObject();
                 entry.put("name", name);
                 entry.put("details", details);
-
+                
                 jsonOutput.put(room.getId().toString(), entry);
             }
             
             toJSON json = new toJSON();
-
+            
             json.setMapVersion(versions);
             json.setSearchTool(jsonOutput.toJSONString());
-
+            
             searchTool.save(json);
             return true;
         } catch (Exception e) {
@@ -188,7 +149,24 @@ public class comService {
             return false;
         }
     }
+    
+    private query processQuery(query q, Integer s) {
+        try {
+            q.setRaisedBy(s.toString());
 
+            // Date system
+            LocalDateTime currentDate = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String formattedDate = currentDate.format(formatter);
+            q.setDate(formattedDate);
+            return queryR.save(q);
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println(e.toString());
+            return null;
+        }
+    }
+    
     protected int updateSearchTool(query q, boolean isSuperAdmin) {
         // After approval this function will update the searchTool in mongodb and will update the maps
         try {
@@ -250,6 +228,46 @@ public class comService {
 
     }
 
+    public boolean searchTools() {
+        // File path to your JSON file
+
+        String relativePath = "src/main/resources/templates/searchTool.json";
+        File file = Paths.get(relativePath).toFile();
+        // String filePath = "D:\\Learn Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
+
+        try {
+            // Parse the JSON file
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(file));
+
+            // Loop through JSON and prepare MongoDB documents
+            for (Object key : jsonObject.keySet()) {
+                try {
+                    String id = (String) key;
+                    JSONObject valueObj = (JSONObject) jsonObject.get(id);
+                    searchTool s = new searchTool();
+                    s.setId(Integer.parseInt(id));
+    
+    
+                    if(s.getData() == null) s.setData(new ArrayList<Pair<String, Pair<String, String>>>());
+                    
+                    Pair<String, String> p = new Pair<String,String>(valueObj.get("name").toString(), valueObj.get("details").toString());
+                    s.getData().add(new Pair<String, Pair<String, String>> ("1", p));
+                    search.save(s);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    System.out.println(e.toString());
+                }
+            }
+            System.out.println("Data successfully inserted into MongoDB!");
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.toString());
+            return false;
+        }
+    }
+
     public List<query> getAllQueries() {
         return queryR.findAll();
     }
@@ -284,23 +302,6 @@ public class comService {
         } catch (Exception e) {
             System.out.println(e.toString());
             return new ArrayList<query>();
-        }
-    }
-
-    private query processQuery(query q, Integer s) {
-        try {
-            q.setRaisedBy(s.toString());
-
-            // Date system
-            LocalDateTime currentDate = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            String formattedDate = currentDate.format(formatter);
-            q.setDate(formattedDate);
-            return queryR.save(q);
-        } catch (Exception e) {
-            // TODO: handle exception
-            System.out.println(e.toString());
-            return null;
         }
     }
 

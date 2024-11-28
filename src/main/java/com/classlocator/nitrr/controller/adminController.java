@@ -19,12 +19,8 @@ import com.classlocator.nitrr.services.adminService;
 @RequestMapping("/admin")
 public class adminController {
 
-
     @Autowired
     private adminService admins;
-
-
-    
 
     @PostMapping("/signup")
     public ResponseEntity<String> createUser(@RequestBody admin user) {
@@ -42,8 +38,6 @@ public class adminController {
         else if(status == 0) return new ResponseEntity<String>("Not the authorized admin.", HttpStatus.UNAUTHORIZED);
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    
 
     @PostMapping("/vote")
     public ResponseEntity<String> voting(@RequestParam("rollno") int rollno, @RequestParam("id") String id)

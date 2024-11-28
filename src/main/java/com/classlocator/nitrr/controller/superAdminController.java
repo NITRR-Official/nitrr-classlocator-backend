@@ -3,6 +3,7 @@ package com.classlocator.nitrr.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,11 +26,18 @@ public class superAdminController {
     
 
     @PostMapping("/signup")
-    public ResponseEntity<String> createUser(@RequestBody superAdmin suser) {
+    public ResponseEntity<String> activateAdmin(@RequestBody superAdmin suser) {
         int status = sadmins.saveUpdateSuperAdmin(suser);
         if(status == 1) return new ResponseEntity<String>("Super Admin created", HttpStatus.CREATED);
         else if(status == 0) return new ResponseEntity<String>("Super Admin enabled.", HttpStatus.OK);
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/remove")
+    public ResponseEntity<String> deactivateAdmin(){
+        int status = sadmins.deleteSuperAdmin();
+        if(status == 1) return new ResponseEntity<String>("Super Admin deactivated", HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("Failed to deactivate super admin...", HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping("/raiseQuery")
@@ -42,8 +50,7 @@ public class superAdminController {
     }
 
     @PostMapping("/approve")
-    public ResponseEntity<String> voting(@RequestParam("id") String id)
-    {
+    public ResponseEntity<String> voting(@RequestParam("id") String id) {
         int status = sadmins.approval(id);
         if(status == 1) return new ResponseEntity<>("Approved", HttpStatus.OK);
         else if(status == 0) return new ResponseEntity<>("Query not found", HttpStatus.BAD_REQUEST);
