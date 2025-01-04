@@ -1,4 +1,4 @@
-package com.classlocator.nitrr.controller;
+package com.classlocator.nitrr.controller.Public;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

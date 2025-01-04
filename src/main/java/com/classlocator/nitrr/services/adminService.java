@@ -1,6 +1,7 @@
 package com.classlocator.nitrr.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -17,13 +18,33 @@ public class adminService extends comService {
 
     // private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    // public int saveUpdateNewAdmin(admin user) {
+    //     try {
+    //         admin temp = adminRe.findByrollno(user.getRollno());
+    //         if(temp != null){
+    //             temp.setName(user.getName());
+    //             temp.setDepartment(user.getDepartment());
+    //             temp.setPassword(user.getPassword());
+    //             adminRe.save(temp);
+    //             return 2;
+    //         }
+    //         adminRe.save(user);
+    //         return 1;
+    //     } catch (Exception e) {
+    //         System.out.println(e.toString());
+    //         return -1;
+    //     }
+    // }
+
     public int saveUpdateNewAdmin(admin user) {
         try {
+
             admin temp = adminRe.findByrollno(user.getRollno());
             if(temp != null){
                 temp.setName(user.getName());
                 temp.setDepartment(user.getDepartment());
-                temp.setPassword(user.getPassword());
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
+                user.setRoles(Arrays.asList("ADMIN"));
                 adminRe.save(temp);
                 return 2;
             }

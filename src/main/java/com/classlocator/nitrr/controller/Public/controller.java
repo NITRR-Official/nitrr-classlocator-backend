@@ -1,4 +1,4 @@
-package com.classlocator.nitrr.controller;
+package com.classlocator.nitrr.controller.Public;
 
 import java.util.List;
 
@@ -46,11 +46,12 @@ public class controller {
 
     @GetMapping("/getAllQueries")
     public ResponseEntity<?> getAllQueries() {
+        System.out.println("Running...");
         List<query> all = admins.getAllQueries();
         if (all != null && !all.isEmpty()) {
             return new ResponseEntity<>(all, HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }

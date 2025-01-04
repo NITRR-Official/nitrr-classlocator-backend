@@ -1,8 +1,10 @@
-package com.classlocator.nitrr.controller;
+package com.classlocator.nitrr.controller.Public;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,13 +32,20 @@ public class adminController {
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping("/raiseQuery/{id}")
-    public ResponseEntity<String> raiseQuery(@RequestBody query q, @PathVariable("id") Integer id) {
-        int status = admins.saveQuery(q,id,0);
-        System.out.print(q.toString());
-        if(status == 1) return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
-        else if(status == 0) return new ResponseEntity<String>("Not the authorized admin.", HttpStatus.UNAUTHORIZED);
-        return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+    @PostMapping("/raiseQuery")
+    public ResponseEntity<String> raiseQuery(@RequestBody query q) {
+
+        //We don't require password or id, as it come here only if it is authenticated.
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if(authentication.isAuthenticated())
+        {
+            int status = admins.saveQuery(q,Integer.parseInt(authentication.getName()),0);
+            System.out.print(q.toString());
+            if(status == 1) return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
+            return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        else return new ResponseEntity<String>("Not the authorized admin.", HttpStatus.UNAUTHORIZED);
     }
 
     @PostMapping("/vote")

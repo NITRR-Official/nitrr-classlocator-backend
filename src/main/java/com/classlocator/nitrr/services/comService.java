@@ -11,6 +11,8 @@ import com.classlocator.nitrr.interfaces.Pair;
 import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.classlocator.nitrr.entity.admin;
@@ -43,8 +45,11 @@ public class comService {
     @Autowired
     private searchToolRepo search;
 
+    
     @Autowired
     private toJSONRepo searchTool;
+
+    protected static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // The rollBack/deleteTrash/recoverQueries/rejectQueries to be applied later
 
