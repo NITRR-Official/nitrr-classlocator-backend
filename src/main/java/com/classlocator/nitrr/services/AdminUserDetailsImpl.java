@@ -13,6 +13,8 @@ public class AdminUserDetailsImpl extends comService implements UserDetailsServi
     @Override
     public UserDetails loadUserByUsername(String rollno) throws UsernameNotFoundException {
 
+        System.out.println("From admin checking : "+rollno);
+
         admin user = adminRe.findByrollno(Integer.parseInt(rollno));
 
         if(user != null)

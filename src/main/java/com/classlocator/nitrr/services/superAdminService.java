@@ -19,6 +19,7 @@ public class superAdminService extends comService {
             List<superAdmin> check = sadminRe.findAll();
             if(check.size() > 1 && (check.get(0).getId() == 1 || check.get(1).getId() == 1)) return 0;
             user.setId(1);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             sadminRe.save(user);
             return 1;
         } catch (Exception e) {

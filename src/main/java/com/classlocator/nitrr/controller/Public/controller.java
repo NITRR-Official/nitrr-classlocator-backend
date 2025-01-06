@@ -46,7 +46,6 @@ public class controller {
 
     @GetMapping("/getAllQueries")
     public ResponseEntity<?> getAllQueries() {
-        System.out.println("Running...");
         List<query> all = admins.getAllQueries();
         if (all != null && !all.isEmpty()) {
             return new ResponseEntity<>(all, HttpStatus.OK);

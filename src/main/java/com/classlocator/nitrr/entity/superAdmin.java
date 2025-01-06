@@ -38,4 +38,7 @@ public class superAdmin {
     @DBRef
     @Builder.Default
     private List<trash> trashedQueries = new ArrayList<>();
+
+     //Roles will be defined here like ADMIN, SUPER_ADMIN etc.
+     private List<String> roles;
 }
