@@ -1,6 +1,7 @@
 package com.classlocator.nitrr.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,7 @@ public class superAdminService extends comService {
             if(check.size() > 1 && (check.get(0).getId() == 1 || check.get(1).getId() == 1)) return 0;
             user.setId(1);
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setRoles(Arrays.asList("SUPER_ADMIN"));
             sadminRe.save(user);
             return 1;
         } catch (Exception e) {

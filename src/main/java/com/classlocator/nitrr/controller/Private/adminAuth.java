@@ -49,11 +49,15 @@ public class adminAuth {
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        int status = admins.voting(Integer.parseInt(authentication.getName()), id);
-        if(status == 1) return new ResponseEntity<>("Vote successfully", HttpStatus.OK);
-        else if(status == 0) return new ResponseEntity<>("Vote not applied", HttpStatus.BAD_REQUEST);
-        else if(status == 2) return new ResponseEntity<>("Vote already applied.", HttpStatus.OK);
-        return new ResponseEntity<>("Something went wrong.", HttpStatus.INTERNAL_SERVER_ERROR);
+        if(authentication.isAuthenticated())
+        {
+            int status = admins.voting(Integer.parseInt(authentication.getName()), id);
+            if(status == 1) return new ResponseEntity<>("Vote successfully", HttpStatus.OK);
+            else if(status == 0) return new ResponseEntity<>("Vote not applied", HttpStatus.BAD_REQUEST);
+            else if(status == 2) return new ResponseEntity<>("Vote already applied.", HttpStatus.OK);
+            return new ResponseEntity<>("Something went wrong.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        else return new ResponseEntity<String>("Not the authorized admin.", HttpStatus.UNAUTHORIZED);
     }
 
 }

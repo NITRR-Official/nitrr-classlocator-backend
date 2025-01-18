@@ -1,5 +1,6 @@
 package com.classlocator.nitrr.config;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.classlocator.nitrr.services.AdminUserDetailsImpl;
+import com.classlocator.nitrr.services.UserDetailsImpl;
 // import com.classlocator.nitrr.services.SuperAdminUserDetailsImpl;
 
 @Configuration
@@ -19,21 +20,25 @@ import com.classlocator.nitrr.services.AdminUserDetailsImpl;
 public class SpringSecurity {
 
     @Autowired
-    private AdminUserDetailsImpl adminUserDetailsImpl;
+    private UserDetailsImpl adminUserDetailsImpl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/admin/**", "/check", "/sadmin/**", "/getAllQueries", "/generate", "/map", "/download/**").permitAll()
-                .requestMatchers("/requests/**").hasRole("SUPER_ADMIN")
-                .requestMatchers("/request/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .csrf(csrf -> csrf.disable())
-            .build();
+
+        http
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/admin/**", "/check", "/sadmin/**", "/getAllQueries", "/generate", "/map", "/download/**").permitAll()
+            .requestMatchers("/requests/**").hasRole("SUPER_ADMIN")
+            .requestMatchers("/request/**").hasRole("ADMIN")
+            .anyRequest().authenticated()
+        )
+        .csrf(csrf -> csrf.disable())
+        .httpBasic(https -> {});
+
+        return http.build();
     }
 
+    
     @Bean
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);

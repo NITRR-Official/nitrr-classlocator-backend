@@ -50,16 +50,16 @@ public class superAdminAuth {
         }
         else
         {
-            return new ResponseEntity<String>("Not the authorized admin.", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<String>("Not the authorized super admin.", HttpStatus.UNAUTHORIZED);
         }
     }
 
     @PostMapping("/approve")
     public ResponseEntity<String> voting(@RequestParam("id") String id) {
-        int status = sadmins.approval(id);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         
         if(auth.isAuthenticated()){
+            int status = sadmins.approval(id);
             if(status == 1) return new ResponseEntity<>("Approved", HttpStatus.OK);
             else if(status == 0) return new ResponseEntity<>("Query not found", HttpStatus.BAD_REQUEST);
             else if(status == -1) return new ResponseEntity<>("Already approved", HttpStatus.OK);
