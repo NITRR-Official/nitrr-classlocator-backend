@@ -45,7 +45,9 @@ public class comService {
     @Autowired
     private searchToolRepo search;
 
-    
+    @Autowired
+    protected jwtService jwt;
+
     @Autowired
     private toJSONRepo searchTool;
 

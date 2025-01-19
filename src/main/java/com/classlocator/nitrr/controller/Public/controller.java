@@ -12,12 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.interfaces.Pair;
 import com.classlocator.nitrr.services.adminService;
+import com.classlocator.nitrr.services.jwtService;
 
 @RestController
 public class controller {
 
     @Autowired
     private adminService admins;
+
+    @Autowired
+    protected jwtService jwt;
 
     @GetMapping("/generate")
     public ResponseEntity<String> generate(){
