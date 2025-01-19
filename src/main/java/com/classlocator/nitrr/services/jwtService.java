@@ -40,7 +40,7 @@ public class jwtService {
         claims.put("department", department);
         return Jwts.builder().claims().add(claims)
                 .subject(rollno).issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 60 * 24))
+                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 60 * 24 * 30))
                 .and()
                 .signWith(getKey())
                 .compact();
