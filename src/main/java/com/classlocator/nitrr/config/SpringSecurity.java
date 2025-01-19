@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.classlocator.nitrr.services.UserDetailsImpl;
 // import com.classlocator.nitrr.services.SuperAdminUserDetailsImpl;
@@ -22,6 +23,9 @@ public class SpringSecurity {
     @Autowired
     private UserDetailsImpl adminUserDetailsImpl;
 
+    @Autowired
+    private jwtFilter jwtfilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -32,6 +36,7 @@ public class SpringSecurity {
             .requestMatchers("/request/**").hasRole("ADMIN")
             .anyRequest().authenticated()
         )
+        .addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class)
         .csrf(csrf -> csrf.disable())
         .httpBasic(https -> {});
 

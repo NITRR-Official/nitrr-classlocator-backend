@@ -30,8 +30,8 @@ public class superAdminController extends controller {
         int status = sadmins.saveUpdateSuperAdmin(suser);
         if(status == 1) {
             Map<String, String> mp = new HashMap<String, String>();
-            mp.put("Admin verification was successful", jwt.generateToken(suser.getId().toString(),suser.getName(),"NIT Raipur", "SUPER_ADMIN"));
-            return new ResponseEntity<String>("Super Admin created", HttpStatus.CREATED);
+            mp.put("Super admin activated: ", jwt.generateToken(suser.getId().toString(),suser.getName(),"NIT Raipur", "SUPER_ADMIN"));
+            return new ResponseEntity<Map<String, String>>(mp, HttpStatus.CREATED);
         } 
         else if(status == 0) return new ResponseEntity<String>("Super Admin enabled.", HttpStatus.OK);
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
