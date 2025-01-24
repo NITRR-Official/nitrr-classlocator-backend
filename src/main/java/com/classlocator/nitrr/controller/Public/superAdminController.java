@@ -22,6 +22,8 @@ public class superAdminController extends controller {
     @Autowired
     private superAdminService sadmins;
 
+    Map<String, String> token = new HashMap<String, String>();
+
     //Special query raise system for super admin to be created here
     
 
@@ -29,12 +31,24 @@ public class superAdminController extends controller {
     public ResponseEntity<?> activateAdmin(@RequestBody superAdmin suser) {
         int status = sadmins.saveUpdateSuperAdmin(suser);
         if(status == 1) {
-            Map<String, String> mp = new HashMap<String, String>();
-            mp.put("Super admin activated: ", jwt.generateToken(suser.getId().toString(),suser.getName(),"NIT Raipur", "SUPER_ADMIN"));
-            return new ResponseEntity<Map<String, String>>(mp, HttpStatus.CREATED);
+            token.put("Super admin activated: ", jwt.generateToken(suser.getId().toString(),suser.getName(),"NIT Raipur", "SUPER_ADMIN"));
+            return new ResponseEntity<Map<String, String>>(token, HttpStatus.CREATED);
         } 
         else if(status == 0) return new ResponseEntity<String>("Super Admin enabled.", HttpStatus.OK);
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> s) {
+        try {
+            superAdmin status  = (superAdmin)sadmins.authorization(Integer.parseInt(s.get("rollno")),s.get("password")).get("sadmin");
+            token.put("Token ", jwt.generateToken(s.get("rollno"),status.getName(),"NIT Raipur", "SUPER_ADMIN"));
+            return new ResponseEntity<Map<String, String>>(token, HttpStatus.OK);            
+        } catch (Exception e) {
+            // TODO: handle exception
+            // e.printStackTrace();
+            return new ResponseEntity<String>("Unauthorized access, credentials invalid.", HttpStatus.UNAUTHORIZED);
+        }
     }
     
 }

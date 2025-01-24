@@ -27,7 +27,7 @@ public class SpringSecurity {
     private jwtFilter jwtfilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
         .authorizeHttpRequests(auth -> auth
@@ -43,16 +43,16 @@ public class SpringSecurity {
         return http.build();
     }
 
-    
+
     @Bean
-    public AuthenticationManager authManager(HttpSecurity http) throws Exception {
+    AuthenticationManager authManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
         auth.userDetailsService(adminUserDetailsImpl).passwordEncoder(passwordEncoder());
         return auth.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

@@ -2,6 +2,7 @@ package com.classlocator.nitrr.services;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,9 +11,17 @@ import org.springframework.stereotype.Component;
 
 import com.classlocator.nitrr.entity.admin;
 import com.classlocator.nitrr.entity.superAdmin;
+import com.classlocator.nitrr.repository.adminRepo;
+import com.classlocator.nitrr.repository.superAdminRepo;
 
 @Component
-public class UserDetailsImpl extends comService implements UserDetailsService  {
+public class UserDetailsImpl implements UserDetailsService  {
+
+    @Autowired
+    private adminRepo adminRe;
+
+    @Autowired
+    private superAdminRepo sadminRe;
 
     private UserDetails helper(admin user){
         UserDetails userDetails = User.builder().

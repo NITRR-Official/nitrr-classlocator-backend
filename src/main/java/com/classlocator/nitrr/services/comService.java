@@ -5,12 +5,19 @@ import java.io.FileReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import com.classlocator.nitrr.interfaces.Pair;
 import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -50,6 +57,9 @@ public class comService {
 
     @Autowired
     private toJSONRepo searchTool;
+
+    @Autowired
+    private AuthenticationManager authManager;
 
     protected static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -105,7 +115,7 @@ public class comService {
             return null;
         }
     }
-        
+
     // The below functionality is to be applied as soon as possible
 
     @SuppressWarnings("unchecked")
@@ -114,41 +124,41 @@ public class comService {
             // Initialize JSON Object
             JSONObject jsonOutput = new JSONObject();
             List<searchTool> rooms = search.findAll();
-            
-            //Getting whether map exist or not
+
+            // Getting whether map exist or not
             List<toJSON> mapp = searchTool.findAll();
-            
-            //Inserting the current version here into the json file
+
+            // Inserting the current version here into the json file
             int versions = 0;
-            if(mapp != null) {
-                versions = mapp.get(0).getMapVersion()+1;
+            if (mapp != null) {
+                versions = mapp.get(0).getMapVersion() + 1;
             }
-            
+
             jsonOutput.put("version", versions);
-            
+
             for (searchTool room : rooms) {
                 List<Pair<String, Pair<String, String>>> dataArray = room.getData();
-                
+
                 if (dataArray == null || dataArray.isEmpty()) {
                     continue; // Skip if data array is missing or empty
                 }
-                
-                String name = dataArray.get(dataArray.size()-1).getValue().getKey();
-                String details = dataArray.get(dataArray.size()-1).getValue().getValue();
-                
+
+                String name = dataArray.get(dataArray.size() - 1).getValue().getKey();
+                String details = dataArray.get(dataArray.size() - 1).getValue().getValue();
+
                 // Add to JSON output
                 JSONObject entry = new JSONObject();
                 entry.put("name", name);
                 entry.put("details", details);
-                
+
                 jsonOutput.put(room.getId().toString(), entry);
             }
-            
+
             toJSON json = new toJSON();
-            
+
             json.setMapVersion(versions);
             json.setSearchTool(jsonOutput.toJSONString());
-            
+
             searchTool.save(json);
             return true;
         } catch (Exception e) {
@@ -156,7 +166,7 @@ public class comService {
             return false;
         }
     }
-    
+
     private query processQuery(query q, Integer s) {
         try {
             q.setRaisedBy(s.toString());
@@ -173,23 +183,25 @@ public class comService {
             return null;
         }
     }
-    
+
     protected int updateSearchTool(query q, boolean isSuperAdmin) {
-        // After approval this function will update the searchTool in mongodb and will update the maps
+        // After approval this function will update the searchTool in mongodb and will
+        // update the maps
         try {
 
-            /* 
-            
-            First it will always check whether the searchTool exists or not for all 301 rooms,
-            if it exist then it will create new map, otherwise it will first fill all the details 
-            in mongodb using version 1 searchTool.json file created in 2022. 
-            
-            */
+            /*
+             * 
+             * First it will always check whether the searchTool exists or not for all 301
+             * rooms,
+             * if it exist then it will create new map, otherwise it will first fill all the
+             * details
+             * in mongodb using version 1 searchTool.json file created in 2022.
+             * 
+             */
 
-            if(!(search.count() > 0)) 
-            {
+            if (!(search.count() > 0)) {
                 boolean status = searchTools();
-                if(!status) {
+                if (!status) {
                     return -1;
                 }
             }
@@ -209,16 +221,18 @@ public class comService {
 
             // Generate new map here and will save the new map to toJSON entity
             if (generateMap()) {
-                
-                /* 
-                
-                Now after successful generation of new map, the query will move to approved list
 
-                Here moving to pending will take place, as if something goes wrong then no further updates 
-                allowed so that it will act as transactional system 
-                
-                */
-                
+                /*
+                 * 
+                 * Now after successful generation of new map, the query will move to approved
+                 * list
+                 * 
+                 * Here moving to pending will take place, as if something goes wrong then no
+                 * further updates
+                 * allowed so that it will act as transactional system
+                 * 
+                 */
+
                 int approvalDB = isSuperAdmin ? saveQuery(q, 1) : saveQuery(q, Integer.parseInt(q.getRaisedBy()), 1);
                 if (approvalDB == -1) {
                     // rollback the generateMap() and return -1
@@ -240,7 +254,8 @@ public class comService {
 
         String relativePath = "src/main/resources/templates/searchTool.json";
         File file = Paths.get(relativePath).toFile();
-        // String filePath = "D:\\Learn Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
+        // String filePath = "D:\\Learn
+        // Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
 
         try {
             // Parse the JSON file
@@ -254,12 +269,13 @@ public class comService {
                     JSONObject valueObj = (JSONObject) jsonObject.get(id);
                     searchTool s = new searchTool();
                     s.setId(Integer.parseInt(id));
-    
-    
-                    if(s.getData() == null) s.setData(new ArrayList<Pair<String, Pair<String, String>>>());
-                    
-                    Pair<String, String> p = new Pair<String,String>(valueObj.get("name").toString(), valueObj.get("details").toString());
-                    s.getData().add(new Pair<String, Pair<String, String>> ("1", p));
+
+                    if (s.getData() == null)
+                        s.setData(new ArrayList<Pair<String, Pair<String, String>>>());
+
+                    Pair<String, String> p = new Pair<String, String>(valueObj.get("name").toString(),
+                            valueObj.get("details").toString());
+                    s.getData().add(new Pair<String, Pair<String, String>>("1", p));
                     search.save(s);
                 } catch (Exception e) {
                     // TODO: handle exception
@@ -279,10 +295,37 @@ public class comService {
         return queryR.findAll();
     }
 
-    public boolean authorization(Integer rollno) {
+    public Map<String, Object> authorization(Integer rollno, String password) {
         // This function will authorize whether the user is legit or not by comparing
         // passwords, authentication etc.
-        return false;
+
+        Authentication auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(rollno.toString(), password));
+        
+        System.out.println("Role: " + auth.getAuthorities().toString() + " "+ auth.isAuthenticated());
+
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        if (auth.isAuthenticated()) {
+            
+            if (auth.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
+                admin auser = adminRe.findByrollno(rollno);
+                attributes.put("admin", auser);
+                return attributes;
+            }  
+
+            if (auth.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .anyMatch(role -> role.equals("ROLE_SUPER_ADMIN"))) {
+                superAdmin suser = sadminRe.findById(rollno).get();
+                attributes.put("sadmin", suser);
+                return attributes;
+            }
+        }
+
+        if(auth.isAuthenticated()) attributes.put("Forbidden", HttpStatus.FORBIDDEN);
+        else attributes.put("Unauthorized", HttpStatus.UNAUTHORIZED);
+        return attributes;
     }
 
     public List<query> Queries(Integer rollno, Integer type) {
@@ -375,20 +418,18 @@ public class comService {
         }
     }
 
-    public Pair<Integer, String> downloadMap(int version)
-    {
+    public Pair<Integer, String> downloadMap(int version) {
         try {
             List<toJSON> map = searchTool.findAll();
             int mapVer = -1;
-            if(map != null)
-            {
+            if (map != null) {
                 mapVer = map.get(0).getMapVersion();
-                if(mapVer > version){
+                if (mapVer > version) {
                     return new Pair<Integer, String>(1, map.get(0).getSearchTool());
                 }
                 return new Pair<Integer, String>(0, null);
-            }
-            else return new Pair<Integer, String>(-1, null);
+            } else
+                return new Pair<Integer, String>(-1, null);
         } catch (Exception e) {
             // TODO: handle exception
             System.out.println(e.toString());

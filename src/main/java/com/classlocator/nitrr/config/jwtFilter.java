@@ -54,7 +54,5 @@ public class jwtFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'doFilterInternal'");
     }
 }
