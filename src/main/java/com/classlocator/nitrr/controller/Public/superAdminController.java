@@ -42,11 +42,9 @@ public class superAdminController extends controller {
     public ResponseEntity<?> login(@RequestBody Map<String, String> s) {
         try {
             superAdmin status  = (superAdmin)sadmins.authorization(Integer.parseInt(s.get("rollno")),s.get("password")).get("sadmin");
-            token.put("Token ", jwt.generateToken(s.get("rollno"),status.getName(),"NIT Raipur", "SUPER_ADMIN"));
+            token.put("Token ", jwt.generateToken(status.getId().toString(),status.getName(),"NIT Raipur", "SUPER_ADMIN"));
             return new ResponseEntity<Map<String, String>>(token, HttpStatus.OK);            
         } catch (Exception e) {
-            // TODO: handle exception
-            // e.printStackTrace();
             return new ResponseEntity<String>("Unauthorized access, credentials invalid.", HttpStatus.UNAUTHORIZED);
         }
     }

@@ -13,7 +13,6 @@ import com.classlocator.nitrr.interfaces.Pair;
 import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -300,12 +299,13 @@ public class comService {
         // passwords, authentication etc.
 
         Authentication auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(rollno.toString(), password));
+        boolean authStatus = auth.isAuthenticated();
         
-        System.out.println("Role: " + auth.getAuthorities().toString() + " "+ auth.isAuthenticated());
+        System.out.println("Role: " + auth.getAuthorities().toString() + " "+ authStatus);
 
         Map<String, Object> attributes = new HashMap<String, Object>();
-        if (auth.isAuthenticated()) {
-            
+        if (authStatus) {
+
             if (auth.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
@@ -323,9 +323,7 @@ public class comService {
             }
         }
 
-        if(auth.isAuthenticated()) attributes.put("Forbidden", HttpStatus.FORBIDDEN);
-        else attributes.put("Unauthorized", HttpStatus.UNAUTHORIZED);
-        return attributes;
+        return null;
     }
 
     public List<query> Queries(Integer rollno, Integer type) {

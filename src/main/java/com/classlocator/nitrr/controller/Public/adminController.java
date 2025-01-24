@@ -39,14 +39,12 @@ public class adminController extends controller {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> s) {
-        Map<String, Object> mp = admins.authorization(Integer.parseInt(s.get("rollno")),s.get("password"));
         try {
-            admin status  = (admin) mp.get("admin");
+            admin status  = (admin) admins.authorization(Integer.parseInt(s.get("rollno")),s.get("password")).get("admin");
             token.put("Token ", jwt.generateToken(status.getRollno().toString(),status.getName(),status.getDepartment(), status.getRoles().get(0)));
             return new ResponseEntity<Map<String, String>>(token, HttpStatus.OK);
         } catch (Exception e) {
-            if(mp.get("Forbidden") != null) return new ResponseEntity<>("User not allowed to do this operation", (HttpStatus)mp.get("Forbidden"));
-            return new ResponseEntity<String>("Unauthorized access, credentials invalid.", (HttpStatus)mp.get("Unauthorized"));
+            return new ResponseEntity<>("User not allowed to do this operation", HttpStatus.FORBIDDEN);
         }
     }
 
