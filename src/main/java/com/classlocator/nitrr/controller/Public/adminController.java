@@ -25,15 +25,21 @@ public class adminController extends controller {
     Map<String, String> token = new HashMap<String, String>();
 
     @PostMapping("/signup")
-    public ResponseEntity<?> createUser(@RequestBody admin user) {
+    public ResponseEntity<?> createUser(@RequestBody Map<String, String> user) {
         int status = admins.saveUpdateNewAdmin(user);
-        if (status == 1) {
-            token.put("Admin verification was successful", jwt.generateToken(user.getRollno().toString(),
-                    user.getName(),
-                    user.getDepartment(), "ADMIN"));
-            return new ResponseEntity<Map<String, String>>(token, HttpStatus.CREATED);
-        } else if (status == 2)
-            return new ResponseEntity<String>("Admin details updated.", HttpStatus.OK);
+        if (status == 1 || status == 2) {
+            
+            String action = status == 1 ? "created" : "updated";
+            HttpStatus httpStatus = status == 1 ? HttpStatus.CREATED : HttpStatus.OK;
+            token.put(action, jwt.generateToken(user.get("rollno"),
+                    user.get("name"),
+                    user.get("department"), "ADMIN"));
+            return new ResponseEntity<Map<String, String>>(token, httpStatus);
+        }
+        else if(status == -1) 
+            return new ResponseEntity<String>("Wrong password", HttpStatus.FORBIDDEN);
+        else if(status == -2)
+            return new ResponseEntity<String>("Invalid Roll no", HttpStatus.BAD_REQUEST);
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

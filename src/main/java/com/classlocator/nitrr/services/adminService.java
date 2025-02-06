@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
@@ -16,23 +17,57 @@ import com.classlocator.nitrr.entity.trash;
 @Service
 public class adminService extends comService {
 
-    public int saveUpdateNewAdmin(admin user) {
+    public int saveUpdateNewAdmin(Map<String, String> user) {
         try {
-            admin temp = adminRe.findByrollno(user.getRollno());
-            if(temp != null){
-                temp.setName(user.getName());
-                temp.setDepartment(user.getDepartment());
-                temp.setPassword(passwordEncoder.encode(user.getPassword()));
+            admin temp = adminRe.findByrollno(Integer.parseInt(user.get("rollno")));
+            if(temp != null) {
+                temp  = (admin) authorization(Integer.parseInt(user.get("rollno")),user.get("password")).get("admin");
+                temp.setName(user.get("name"));
+                temp.setDepartment(user.get("department"));
+                if(user.get("new_pass") != null && !user.get("new_pass").isEmpty()) {
+                    temp.setPassword(passwordEncoder.encode(user.get("new_pass")));
+                }
                 adminRe.save(temp);
-                return 2;
+                return 2; 
             }
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            user.setRoles(Arrays.asList("ADMIN"));
-            adminRe.save(user);
+
+            temp = new admin();
+            temp.setRollno(Integer.parseInt(user.get("rollno")));
+            temp.setName(user.get("name"));
+            temp.setDepartment(user.get("department"));
+            temp.setPassword(passwordEncoder.encode(user.get("password")));
+            temp.setRoles(Arrays.asList("ADMIN"));
+            adminRe.save(temp);
             return 1;
-        } catch (Exception e) {
-            System.out.println(e.toString());
+        } catch (NullPointerException e) {
+            System.out.println(e.toString()); //To be added in logs
             return -1;
+        } catch (NumberFormatException e) {
+            System.out.println(e.toString()); //To be added in logs
+            return -2;
+        } catch (Exception e) {
+            System.out.println(e.toString().hashCode()); //To be added in logs
+            return -3;
+        }
+    }
+    
+    public int updateNewAdmin(Map<String, String> user) {
+        try {
+            admin temp = adminRe.findByrollno(Integer.parseInt(user.get("rollno")));
+            if(temp != null){
+                temp.setName(user.get("name"));
+                temp.setDepartment(user.get("department"));
+                temp.setPassword(passwordEncoder.encode(user.get("password")));
+                adminRe.save(temp);
+                return 2; 
+            }
+            return 0;
+        } catch (NumberFormatException e) {
+            System.out.println(e.toString()); //To be added in logs
+            return -1;
+        } catch (Exception e) {
+            System.out.println(e.toString().hashCode()); //To be added in logs
+            return -2;
         }
     }
 
