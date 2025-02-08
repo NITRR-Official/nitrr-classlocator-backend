@@ -26,7 +26,9 @@ public class superAdmin {
     
     @NonNull
     private String password;
-    private String name;
+
+    @Builder.Default
+    private String name = "Super Admin";
 
     //Referencing to other collection will be carried out here
     @DBRef

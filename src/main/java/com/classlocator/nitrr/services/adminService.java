@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import com.classlocator.nitrr.entity.admin;
@@ -19,9 +20,10 @@ public class adminService extends comService {
 
     public int saveUpdateNewAdmin(Map<String, String> user) {
         try {
-            admin temp = adminRe.findByrollno(Integer.parseInt(user.get("rollno")));
+            int rollno = Integer.parseInt(user.get("rollno"));
+            admin temp = adminRe.findByrollno(rollno);
             if(temp != null) {
-                temp  = (admin) authorization(Integer.parseInt(user.get("rollno")),user.get("password")).get("admin");
+                temp  = (admin) authorization(rollno,user.get("password")).get("admin");
                 temp.setName(user.get("name"));
                 temp.setDepartment(user.get("department"));
                 if(user.get("new_pass") != null && !user.get("new_pass").isEmpty()) {
@@ -32,13 +34,16 @@ public class adminService extends comService {
             }
 
             temp = new admin();
-            temp.setRollno(Integer.parseInt(user.get("rollno")));
+            temp.setRollno(rollno);
             temp.setName(user.get("name"));
             temp.setDepartment(user.get("department"));
             temp.setPassword(passwordEncoder.encode(user.get("password")));
             temp.setRoles(Arrays.asList("ADMIN"));
             adminRe.save(temp);
             return 1;
+        } catch (BadCredentialsException e) {
+            System.out.println(e.toString());
+            return -1;
         } catch (NullPointerException e) {
             System.out.println(e.toString()); //To be added in logs
             return -1;
@@ -48,26 +53,6 @@ public class adminService extends comService {
         } catch (Exception e) {
             System.out.println(e.toString().hashCode()); //To be added in logs
             return -3;
-        }
-    }
-    
-    public int updateNewAdmin(Map<String, String> user) {
-        try {
-            admin temp = adminRe.findByrollno(Integer.parseInt(user.get("rollno")));
-            if(temp != null){
-                temp.setName(user.get("name"));
-                temp.setDepartment(user.get("department"));
-                temp.setPassword(passwordEncoder.encode(user.get("password")));
-                adminRe.save(temp);
-                return 2; 
-            }
-            return 0;
-        } catch (NumberFormatException e) {
-            System.out.println(e.toString()); //To be added in logs
-            return -1;
-        } catch (Exception e) {
-            System.out.println(e.toString().hashCode()); //To be added in logs
-            return -2;
         }
     }
 
