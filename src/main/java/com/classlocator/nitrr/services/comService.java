@@ -305,15 +305,6 @@ public class comService {
 
         Map<String, Object> attributes = new HashMap<String, Object>();
         if (authStatus) {
-
-            if (auth.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
-                admin auser = adminRe.findByrollno(rollno);
-                attributes.put("admin", auser);
-                return attributes;
-            }  
-
             if (auth.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .anyMatch(role -> role.equals("ROLE_SUPER_ADMIN"))) {
@@ -321,6 +312,14 @@ public class comService {
                 attributes.put("sadmin", suser);
                 return attributes;
             }
+
+            if (auth.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
+                admin auser = adminRe.findByrollno(rollno);
+                attributes.put("admin", auser);
+                return attributes;
+            }              
         }
 
         return null;

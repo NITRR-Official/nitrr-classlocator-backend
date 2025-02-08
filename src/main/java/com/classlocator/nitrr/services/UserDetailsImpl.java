@@ -48,14 +48,14 @@ public class UserDetailsImpl implements UserDetailsService  {
 
         System.out.println("From admin checking : "+rollno);
 
-        admin user = adminRe.findByrollno(Integer.parseInt(rollno));
         Optional<superAdmin> suser = sadminRe.findById(Integer.parseInt(rollno));
+        admin user = adminRe.findByrollno(Integer.parseInt(rollno));
 
-        if(user != null)
+        if(suser.isPresent())
         {
-            return helper(user);
+            return helper(suser.get());
         }
-        else if (suser.isPresent()) return helper(suser.get());
+        else if (user != null) return helper(user);
 
         throw new UsernameNotFoundException("User roll number not found: " + rollno);
     }

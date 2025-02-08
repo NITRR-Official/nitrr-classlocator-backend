@@ -21,6 +21,7 @@ public class adminService extends comService {
     public int saveUpdateNewAdmin(Map<String, String> user) {
         try {
             int rollno = Integer.parseInt(user.get("rollno"));
+            if(rollno == 1) throw new NullPointerException();
             admin temp = adminRe.findByrollno(rollno);
             if(temp != null) {
                 temp  = (admin) authorization(rollno,user.get("password")).get("admin");
