@@ -30,7 +30,7 @@ public class adminAuth {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         try {
             int rollno = Integer.parseInt(authentication.getName());
-            int status = admins.saveQuery(q, rollno, 0);
+            int status = admins.saveQuery(q, rollno);
             if (status == 1)
                 return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
             else if (status == -1)

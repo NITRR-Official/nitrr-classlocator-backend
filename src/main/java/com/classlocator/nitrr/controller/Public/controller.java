@@ -26,7 +26,7 @@ public class controller {
     @GetMapping("/generate")
     public ResponseEntity<String> generate(){
         
-        if(admins.searchTools())
+        if(admins.searchToolsGenerator())
         {
             return new ResponseEntity<String>("Genearted successfully...", HttpStatus.CREATED);
         }

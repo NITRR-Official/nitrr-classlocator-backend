@@ -78,27 +78,25 @@ public class superAdminService extends comService {
         try {
             //Direct rejection/approval is handled here
 
-            //IsAuthorized or not is handled here
-
-            ObjectId objectId = new ObjectId(id);
-            Optional<query> q = queryR.findById(objectId);
+            Optional<query> q = queryR.findById(new ObjectId(id));
             if (q.isPresent()) {
                 query temp = q.get();
                 if(!temp.isSuperAdmin())
+                {
                     temp.setSuperAdmin(true);
-                else return -1;
-
-                int appStatus = Integer.parseInt(temp.getRaisedBy().toString()) == 1 ? updateSearchTool(temp, true) : updateSearchTool(temp, false);
-                System.out.println("After approval"+temp);
-                if(appStatus == -1) return -2;
+                    int status = Integer.parseInt(temp.getRaisedBy());
+                    int appStatus = status == 1 ? updateSearchTool(temp, true) : updateSearchTool(temp, false);
+                    if(appStatus != 1) return appStatus;
+                }
+                else return 0;
                 queryR.save(temp);
                 return 1;
             } else {
-                return 0;
+                return -1;
             }
         } catch (Exception e) {
             System.out.println(e.toString());
-            return -2;
+            return -3;
         }
     }
 

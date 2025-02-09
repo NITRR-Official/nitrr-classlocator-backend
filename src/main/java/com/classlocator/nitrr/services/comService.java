@@ -33,7 +33,6 @@ import com.classlocator.nitrr.repository.searchToolRepo;
 import com.classlocator.nitrr.repository.superAdminRepo;
 import com.classlocator.nitrr.repository.toJSONRepo;
 
-import org.bson.types.ObjectId;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -89,33 +88,41 @@ public class comService {
         return false;
     }
 
-    private admin removePending(admin user, Map<String, String> q) {
+    private int removePending(String user, query q) {
         boolean removed = false;
         try {
-            query q1 = queryR.findById(new ObjectId(q.get("id"))).get();
-            removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q1.getId()));
+            admin a = adminRe.findByrollno(Integer.parseInt(user));
+            removed = a.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
             if (removed) {
-                return user;
+                a.getAcceptedQueries().add(q);
             } else
-                return null;
+                return -3;
+            return 1;
         } catch (Exception e) {
             System.out.println(e.toString());
-            return null;
+            return -3;
         }
     }
 
-    private superAdmin removePending(superAdmin user, Map<String, String> q) {
+    private int removePending(query q) {
         boolean removed = false;
         try {
-            query q1 = queryR.findById(new ObjectId(q.get("id"))).get();
-            removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q1.getId()));
+            Optional<superAdmin> suser = sadminRe.findById(1);
+            if (suser.isEmpty())
+                return -3;
+            superAdmin user = suser.get();
+
+            removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
             if (removed) {
-                return user;
+                user.getAcceptedQueries().add(q);
             } else
-                return null;
+                return -3;
+
+            sadminRe.save(user);
+            return 1;
         } catch (Exception e) {
             System.out.println(e.toString());
-            return null;
+            return -3;
         }
     }
 
@@ -146,7 +153,7 @@ public class comService {
             jsonOutput.put("version", versions);
 
             for (searchTool room : rooms) {
-                List<Pair<String, Pair<String, String>>> dataArray = room.getData();
+                List<Pair<query, Pair<String, String>>> dataArray = room.getData();
 
                 if (dataArray == null || dataArray.isEmpty()) {
                     continue; // Skip if data array is missing or empty
@@ -227,28 +234,23 @@ public class comService {
              * rooms,
              * if it exist then it will create new map, otherwise it will first fill all the
              * details
-             * in mongodb using version 1 searchTool.json file created in 2022.
+             * in mongodb from version 1 searchTool.json file created in 2022.
              * 
              */
 
             if (!(search.count() > 0)) {
-                boolean status = searchTools();
+                boolean status = searchToolsGenerator();
                 if (!status) {
-                    return -1;
+                    return -2;
                 }
             }
 
             Optional<searchTool> room = search.findById(q.getRoomid());
-            searchTool temp;
-            if (room.isPresent())
-                temp = room.get();
-            else
-                temp = new searchTool();
+            searchTool temp = room.isPresent() ? room.get() : new searchTool();
 
-            if (temp.getData() == null)
-                temp.setData(new ArrayList<Pair<String, Pair<String, String>>>());
-            Pair<String, String> t = new Pair<String, String>(q.getName(), q.getDescription());
-            temp.getData().add(new Pair<String, Pair<String, String>>(q.getId().toString(), t));
+            // Adding/Updating the new query to the searchTool
+            temp.getData().add(new Pair<query, Pair<String, String>>(q,
+                    new Pair<String, String>(q.getName(), q.getDescription())));
             temp.setId(q.getRoomid());
 
             // Generate new map here and will save the new map to toJSON entity
@@ -265,28 +267,28 @@ public class comService {
                  * 
                  */
 
-                // int approvalDB = isSuperAdmin ? saveQuery(q, 1) : saveQuery(q,
-                // Integer.parseInt(q.getRaisedBy()), 1);
-                // if (approvalDB == -1) {
-                // // rollback the generateMap() and return -1
-                // return -1;
-                // }
+                int approvalDB = afterApproval(q, isSuperAdmin);
+                if (approvalDB != 1) {
+                    // rollback the generateMap() and return -3
+                    return -3;
+                }
                 search.save(temp);
                 return 1;
             } else
-                return -1;
+                return -2;
         } catch (Exception e) {
             System.out.println("Exception raised from update search tool: " + e.toString());
-            return -1;
+            return -3;
         }
 
     }
 
-    public boolean searchTools() {
+    public boolean searchToolsGenerator() {
         // File path to your JSON file
 
         String relativePath = "src/main/resources/templates/searchTool.json";
         File file = Paths.get(relativePath).toFile();
+        query q = new query();
         // String filePath = "D:\\Learn
         // Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
 
@@ -303,22 +305,20 @@ public class comService {
                     searchTool s = new searchTool();
                     s.setId(Integer.parseInt(id));
 
-                    if (s.getData() == null)
-                        s.setData(new ArrayList<Pair<String, Pair<String, String>>>());
+                    s.getData()
+                            .add(new Pair<query, Pair<String, String>>(q,
+                                    new Pair<String, String>(valueObj.get("name").toString(),
+                                            valueObj.get("details").toString())));
 
-                    Pair<String, String> p = new Pair<String, String>(valueObj.get("name").toString(),
-                            valueObj.get("details").toString());
-                    s.getData().add(new Pair<String, Pair<String, String>>("1", p));
                     search.save(s);
                 } catch (Exception e) {
+                    // Log to be created for that json or room id where data can't be inserted
                     System.out.println(e.toString());
                 }
             }
-            System.out.println("Data successfully inserted into MongoDB!");
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.toString());
+            System.out.println(e.getMessage());
             return false;
         }
     }
@@ -386,7 +386,15 @@ public class comService {
         }
     }
 
-    public int saveQuery(Map<String, String> q, Integer status) {
+    public int afterApproval(query q, boolean isSuperAdmin) {
+        if (isSuperAdmin) {
+            return removePending(q);
+        } else {
+            return removePending(q.getRaisedBy(), q);
+        }
+    }
+
+    public int saveQuery(Map<String, String> q) {
         Map<String, ?> activity = processQuery(q, 1);
         try {
             superAdmin suser = sadminRe.findById(1).get();
@@ -394,16 +402,7 @@ public class comService {
             if (temp == null) {
                 return (int) activity.get("error");
             }
-
-            if (status == 0) {
-                suser.getPendingQueries().add(temp);
-            } else if (status == 1) {
-                suser = removePending(suser, q);
-                if (suser != null)
-                    suser.getAcceptedQueries().add(temp);
-                else
-                    return -3;
-            }
+            suser.getPendingQueries().add(temp);
             sadminRe.save(suser);
             return 1;
         } catch (Exception e) {
@@ -412,7 +411,7 @@ public class comService {
         }
     }
 
-    public int saveQuery(Map<String, String> q, Integer rollno, Integer status) {
+    public int saveQuery(Map<String, String> q, Integer rollno) {
         Map<String, ?> activity = processQuery(q, rollno);
 
         try {
@@ -426,18 +425,8 @@ public class comService {
                 return (int) activity.get("error");
             }
 
-            if (status == 0) // This is tested
-                user.getPendingQueries().add(temp);
-            else if (status == 1) {
-                // First we need to move the query from pending queries to accepted queries
-                user = removePending(user, q);
-                if (user != null)
-                    user.getAcceptedQueries().add(temp);
-                else
-                    return -3;
-            } else if (status == -1) {
-                rejectQueries(false, 0);
-            }
+            user.getPendingQueries().add(temp);
+            rejectQueries(false, 0); // This will be applied later
 
             adminRe.save(user);
             return 1;
