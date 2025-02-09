@@ -1,6 +1,6 @@
 package com.classlocator.nitrr.entity;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -33,13 +33,13 @@ public class superAdmin {
     //Referencing to other collection will be carried out here
     @DBRef
     @Builder.Default
-    private List<query> pendingQueries = new ArrayList<>();
+    private HashSet<query> pendingQueries = new HashSet<>();
     @DBRef
     @Builder.Default
-    private List<query> acceptedQueries = new ArrayList<>();
+    private HashSet<query> acceptedQueries = new HashSet<>();
     @DBRef
     @Builder.Default
-    private List<trash> trashedQueries = new ArrayList<>();
+    private HashSet<trash> trashedQueries = new HashSet<>();
 
      //Roles will be defined here like ADMIN, SUPER_ADMIN etc.
      private List<String> roles;

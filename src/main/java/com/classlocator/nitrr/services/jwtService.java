@@ -28,7 +28,6 @@ public class jwtService {
             SecretKey sKey = keyGenerator.generateKey();
             secretKey = Base64.getEncoder().encodeToString(sKey.getEncoded());
         } catch (NoSuchAlgorithmException e) {
-            // TODO Auto-generated catch block
             System.out.print(e.toString()); //To be added in log file
         }
     }
@@ -40,7 +39,7 @@ public class jwtService {
         claims.put("department", department);
         return Jwts.builder().claims().add(claims)
                 .subject(rollno).issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 60 * 24 * 30))
+                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 24 * 30 * 1000))
                 .and()
                 .signWith(getKey())
                 .compact();

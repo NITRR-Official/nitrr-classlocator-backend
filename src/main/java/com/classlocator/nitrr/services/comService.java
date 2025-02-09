@@ -311,7 +311,6 @@ public class comService {
                     s.getData().add(new Pair<String, Pair<String, String>>("1", p));
                     search.save(s);
                 } catch (Exception e) {
-                    // TODO: handle exception
                     System.out.println(e.toString());
                 }
             }
@@ -461,7 +460,6 @@ public class comService {
             } else
                 return new Pair<Integer, String>(-1, null);
         } catch (Exception e) {
-            // TODO: handle exception
             System.out.println(e.toString());
             return new Pair<Integer, String>(-1, null);
         }
