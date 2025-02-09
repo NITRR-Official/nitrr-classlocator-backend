@@ -31,9 +31,12 @@ public class adminAuth {
         try {
             int rollno = Integer.parseInt(authentication.getName());
             int status = admins.saveQuery(q, rollno, 0);
-            if (status == 1) return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
-            else if(status == -1) return new ResponseEntity<String>("Invalid room id", HttpStatus.CONFLICT);
-            else if(status == -2) return new ResponseEntity<String>("Name or description not provided", HttpStatus.BAD_REQUEST);
+            if (status == 1)
+                return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
+            else if (status == -1)
+                return new ResponseEntity<String>("Invalid room id", HttpStatus.CONFLICT);
+            else if (status == -2)
+                return new ResponseEntity<String>("Name or description not provided", HttpStatus.BAD_REQUEST);
             return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             return new ResponseEntity<String>("Invalid roll no", HttpStatus.CONFLICT);
@@ -43,18 +46,20 @@ public class adminAuth {
     @PostMapping("/vote")
     public ResponseEntity<String> voting(@RequestParam("id") String id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication.isAuthenticated()) {
-            int status = admins.voting(Integer.parseInt(authentication.getName()), id);
+        try {
+            int rollno = Integer.parseInt(authentication.getName());
+            int status = admins.voting(rollno, id);
             if (status == 1)
-                return new ResponseEntity<>("Vote successfully", HttpStatus.OK);
+                return new ResponseEntity<>("Vote successful", HttpStatus.OK);
             else if (status == 0)
-                return new ResponseEntity<>("Vote not applied", HttpStatus.BAD_REQUEST);
-            else if (status == 2)
                 return new ResponseEntity<>("Vote already applied.", HttpStatus.OK);
+            else if(status == -1)
+                return new ResponseEntity<>("Raised user can't vote", HttpStatus.NOT_ACCEPTABLE);
+            else if (status == -2)
+                return new ResponseEntity<>("Query not found", HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>("Something went wrong.", HttpStatus.INTERNAL_SERVER_ERROR);
-        } else
-            return new ResponseEntity<String>("Not the authorized admin.", HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Invalid roll no", HttpStatus.CONFLICT);
+        }
     }
-
 }

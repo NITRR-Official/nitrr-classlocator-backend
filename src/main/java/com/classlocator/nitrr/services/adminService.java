@@ -1,7 +1,6 @@
 package com.classlocator.nitrr.services;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -70,25 +69,30 @@ public class adminService extends comService {
     public int voting(int roll, String id)
     {
         try {
-            System.out.println(roll+" "+id);
-            ObjectId objectId = new ObjectId(id);
-            Optional<query> q = queryR.findById(objectId);
-            if (q.isPresent() && (adminRe.findByrollno(roll) != null)) {
+            Optional<query> q = queryR.findById(new ObjectId(id));
+            if (q.isPresent()) {
                 query temp = q.get();
-                if(temp.getVotes() == null) {
-                    temp.setVotes(new HashMap<Integer, Boolean>());
+                int same = Integer.parseInt(temp.getRaisedBy());
+                if(roll != same){
+                    if(!temp.getVotes().containsKey(roll)) 
+                    {
+                        temp.getVotes().put(roll,true);
+                    }
+                    else {
+                        return 0;
+                    }
                 }
-                if(!temp.getVotes().containsKey(roll) && (roll != Integer.parseInt(temp.getRaisedBy()))) 
-                temp.getVotes().put(roll,true);
-                else return 2;
+                else {
+                    return -1;
+                }
                 queryR.save(temp);
                 return 1;
             } else {
-                return 0;
+                return -2;
             }
         } catch (Exception e) {
             System.out.println(e.toString());
-            return -1;
+            return -3;
         }
     }
 
