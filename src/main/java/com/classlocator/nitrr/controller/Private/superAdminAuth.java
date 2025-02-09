@@ -35,7 +35,7 @@ public class superAdminAuth {
             return new ResponseEntity<String>("Super Admin deactivated", HttpStatus.NO_CONTENT);
         }
         else {
-            return new ResponseEntity<>("Failed to deactivate super admin", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<String>("Failed to deactivate super admin", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }

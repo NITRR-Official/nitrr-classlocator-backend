@@ -29,7 +29,7 @@ public class jwtService {
             secretKey = Base64.getEncoder().encodeToString(sKey.getEncoded());
         } catch (NoSuchAlgorithmException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.print(e.toString()); //To be added in log file
         }
     }
 

@@ -57,7 +57,7 @@ public class superAdminService extends comService {
             sadminRe.deleteById(1);
             return 1;
         } catch (Exception e) {
-            System.out.println(e.toString());
+            System.out.println(e.toString()); //To be added in log file
             return -1;
         }
     }
