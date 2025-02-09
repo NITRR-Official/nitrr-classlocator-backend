@@ -1,5 +1,7 @@
 package com.classlocator.nitrr.controller.Private;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.services.superAdminService;
 
 //This will expose the super admin endpoints to be used by the frontend to be developed by other team members
@@ -28,30 +29,16 @@ public class superAdminAuth {
 
     @DeleteMapping("/remove")
     public ResponseEntity<String> deactivateAdmin(){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth.isAuthenticated())
-        {
-            sadmins.deleteSuperAdmin();
-            return new ResponseEntity<String>("Super Admin deactivated", HttpStatus.NO_CONTENT);
-        }
-        else {
-            return new ResponseEntity<String>("Failed to deactivate super admin", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
+        SecurityContextHolder.getContext().getAuthentication();
+        if(sadmins.deleteSuperAdmin() == 1) return new ResponseEntity<String>("Super Admin deactivated", HttpStatus.NO_CONTENT);
+        else return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PostMapping("/raiseQuery")
-    public ResponseEntity<String> raiseQuery(@RequestBody query q) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth.isAuthenticated()){
-            int status = sadmins.saveQuery(q,0);
-            if(status == 1) return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
-            else return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        else
-        {
-            return new ResponseEntity<String>("Not the authorized super admin.", HttpStatus.UNAUTHORIZED);
-        }
+    public ResponseEntity<String> raiseQuery(@RequestBody Map<String, String> q) {
+        int status = sadmins.saveQuery(q,0);
+        if(status == 1) return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
+        else return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PostMapping("/approve")

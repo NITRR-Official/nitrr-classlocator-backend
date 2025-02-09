@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +33,7 @@ import com.classlocator.nitrr.repository.searchToolRepo;
 import com.classlocator.nitrr.repository.superAdminRepo;
 import com.classlocator.nitrr.repository.toJSONRepo;
 
+import org.bson.types.ObjectId;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -87,10 +89,11 @@ public class comService {
         return false;
     }
 
-    private admin removePending(admin user, query q) {
+    private admin removePending(admin user, Map<String, String> q) {
         boolean removed = false;
         try {
-            removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
+            query q1 = queryR.findById(new ObjectId(q.get("id"))).get();
+            removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q1.getId()));
             if (removed) {
                 return user;
             } else
@@ -101,10 +104,11 @@ public class comService {
         }
     }
 
-    private superAdmin removePending(superAdmin user, query q) {
+    private superAdmin removePending(superAdmin user, Map<String, String> q) {
         boolean removed = false;
         try {
-            removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
+            query q1 = queryR.findById(new ObjectId(q.get("id"))).get();
+            removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q1.getId()));
             if (removed) {
                 return user;
             } else
@@ -115,6 +119,12 @@ public class comService {
         }
     }
 
+    private String infoCheck(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            throw new NullPointerException("Input cannot be empty or only whitespace.");
+        }
+        return input;
+    }
     // The below functionality is to be applied as soon as possible
 
     @SuppressWarnings("unchecked")
@@ -166,20 +176,43 @@ public class comService {
         }
     }
 
-    private query processQuery(query q, Integer s) {
+    private Map<String, ?> processQuery(Map<String, String> q, Integer rollno) {
+        Map<String, query> status = new HashMap<String, query>();
+        Map<String, Integer> error = new HashMap<String, Integer>();
         try {
-            q.setRaisedBy(s.toString());
+            Integer room = Integer.parseInt(q.get("Roomid"));
+            String roll = rollno.toString();
+
+            Optional<query> exists = queryR.findFirstByRoomidAndRaisedBy(room, roll);
+
+            query raiser = exists.isPresent() ? exists.get() : new query();
+
+            // Setting the information into the query object raiser
+            raiser.setRaisedBy(roll);
+            raiser.setRoomid(room);
+            raiser.setName(infoCheck(q.get("name")));
+            raiser.setDescription(infoCheck(q.get("description")));
 
             // Date system
             LocalDateTime currentDate = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDate = currentDate.format(formatter);
-            q.setDate(formattedDate);
-            return queryR.save(q);
-        } catch (Exception e) {
-            // TODO: handle exception
+            raiser.setDate(formattedDate);
+            queryR.save(raiser);
+            status.put("query", raiser);
+            return status;
+        } catch (NumberFormatException e) {
             System.out.println(e.toString());
-            return null;
+            error.put("error", -1);
+            return error;
+        } catch (NullPointerException e) {
+            System.out.println(e.toString());
+            error.put("error", -2);
+            return error;
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            error.put("error", -3);
+            return error;
         }
     }
 
@@ -232,11 +265,12 @@ public class comService {
                  * 
                  */
 
-                int approvalDB = isSuperAdmin ? saveQuery(q, 1) : saveQuery(q, Integer.parseInt(q.getRaisedBy()), 1);
-                if (approvalDB == -1) {
-                    // rollback the generateMap() and return -1
-                    return -1;
-                }
+                // int approvalDB = isSuperAdmin ? saveQuery(q, 1) : saveQuery(q,
+                // Integer.parseInt(q.getRaisedBy()), 1);
+                // if (approvalDB == -1) {
+                // // rollback the generateMap() and return -1
+                // return -1;
+                // }
                 search.save(temp);
                 return 1;
             } else
@@ -298,34 +332,35 @@ public class comService {
         // This function will authorize whether the user is legit or not by comparing
         // passwords, authentication etc.
 
-        Authentication auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(rollno.toString(), password));
+        Authentication auth = authManager
+                .authenticate(new UsernamePasswordAuthenticationToken(rollno.toString(), password));
         boolean authStatus = auth.isAuthenticated();
-        
-        System.out.println("Role: " + auth.getAuthorities().toString() + " "+ authStatus);
+
+        System.out.println("Role: " + auth.getAuthorities().toString() + " " + authStatus);
 
         Map<String, Object> attributes = new HashMap<String, Object>();
         if (authStatus) {
             if (auth.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_SUPER_ADMIN"))) {
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(role -> role.equals("ROLE_SUPER_ADMIN"))) {
                 superAdmin suser = sadminRe.findById(rollno).get();
                 attributes.put("sadmin", suser);
                 return attributes;
             }
 
             if (auth.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
                 admin auser = adminRe.findByrollno(rollno);
                 attributes.put("admin", auser);
                 return attributes;
-            }              
+            }
         }
 
         return null;
     }
 
-    public List<query> Queries(Integer rollno, Integer type) {
+    public HashSet<query> Queries(Integer rollno, Integer type) {
         try {
             admin a = adminRe.findByrollno(rollno);
             if (type == 1)
@@ -334,7 +369,7 @@ public class comService {
                 return a.getAcceptedQueries();
         } catch (Exception e) {
             System.out.println(e.toString());
-            return new ArrayList<query>();
+            return new HashSet<query>();
         }
     }
 
@@ -352,66 +387,64 @@ public class comService {
         }
     }
 
-    public int saveQuery(query q, Integer status) {
+    public int saveQuery(Map<String, String> q, Integer status) {
+        Map<String, ?> activity = processQuery(q, 1);
         try {
-            // admin user = adminRe.findByrollno(s);
-            System.out.println(q.toString());
-            List<superAdmin> suser = sadminRe.findAll();
-            if (suser.isEmpty())
-                return 0;
+            superAdmin suser = sadminRe.findById(1).get();
+            query temp = (query) activity.get("query");
+            if (temp == null) {
+                return (int) activity.get("error");
+            }
 
-            // Getting the admin data and setting the arraylist and updating it...
-
-            query temp = processQuery(q, 1);
-            if (temp != null) {
-                for (superAdmin ele : suser) {
-                    if (temp != null && status == 0) {
-                        ele.getPendingQueries().add(temp);
-                    } else if (temp != null && status == 1) {
-                        ele = removePending(ele, q);
-                        if (ele != null)
-                            ele.getAcceptedQueries().add(temp);
-                        else
-                            return -1;
-                    }
-                    sadminRe.save(ele);
-                }
-            } else
-                return -1;
+            if (status == 0) {
+                suser.getPendingQueries().add(temp);
+            } else if (status == 1) {
+                suser = removePending(suser, q);
+                if (suser != null)
+                    suser.getAcceptedQueries().add(temp);
+                else
+                    return -3;
+            }
+            sadminRe.save(suser);
             return 1;
         } catch (Exception e) {
             System.out.print(e.toString());
-            return -1;
+            return -3;
         }
     }
 
-    public int saveQuery(query q, Integer s, Integer status) {
-        try {
-            admin user = adminRe.findByrollno(s);
+    public int saveQuery(Map<String, String> q, Integer rollno, Integer status) {
+        Map<String, ?> activity = processQuery(q, rollno);
 
+        try {
+            admin user = adminRe.findByrollno(rollno);
             if (user == null)
-                return 0;
+                return -3;
 
             // Getting the admin data and setting the arraylist and updating it...
-            query temp = processQuery(q, s);
-            if (temp != null && status == 0)
+            query temp = (query) activity.get("query");
+            if (temp == null) {
+                return (int) activity.get("error");
+            }
+
+            if (status == 0) // This is tested
                 user.getPendingQueries().add(temp);
-            else if (temp != null && status == 1) {
+            else if (status == 1) {
                 // First we need to move the query from pending queries to accepted queries
                 user = removePending(user, q);
                 if (user != null)
                     user.getAcceptedQueries().add(temp);
                 else
-                    return -1;
-            } else if (temp != null && status == -1) {
+                    return -3;
+            } else if (status == -1) {
                 rejectQueries(false, 0);
-            } else
-                return -1;
+            }
+
             adminRe.save(user);
             return 1;
         } catch (Exception e) {
             System.out.print(e.toString());
-            return -1;
+            return -3;
         }
     }
 

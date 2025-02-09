@@ -1,9 +1,8 @@
 package com.classlocator.nitrr.services;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 
@@ -57,14 +56,14 @@ public class adminService extends comService {
         }
     }
 
-    public List<trash> adminTrash(Integer rollno)
+    public HashSet<trash> adminTrash(Integer rollno)
     {
         try {
             admin a = adminRe.findByrollno(rollno);
             return a.getTrashedQueries();
         } catch (Exception e) {
             System.out.println(e.toString());
-            return new ArrayList<trash>();
+            return new HashSet<trash>();
         }
     }    
 

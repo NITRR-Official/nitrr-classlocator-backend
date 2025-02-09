@@ -39,7 +39,7 @@ public class adminController extends controller {
         } else if (status == -1)
             return new ResponseEntity<String>("Wrong username or password", HttpStatus.FORBIDDEN);
         else if (status == -2)
-            return new ResponseEntity<String>("Invalid Roll no", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<String>("Invalid Roll no", HttpStatus.CONFLICT);
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -53,6 +53,9 @@ public class adminController extends controller {
             return new ResponseEntity<String>("Wrong username or password", HttpStatus.UNAUTHORIZED);
         } catch (NullPointerException e) {
             return new ResponseEntity<String>("Not allowed", HttpStatus.FORBIDDEN);
+        }
+        catch (NumberFormatException e) {
+            return new ResponseEntity<String>("Invalid Roll no", HttpStatus.CONFLICT);
         }
         catch (Exception e) {
             return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
