@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.classlocator.nitrr.entity.searchTool;
 import com.classlocator.nitrr.interfaces.Pair;
 import com.classlocator.nitrr.services.adminService;
 import com.classlocator.nitrr.services.jwtService;
@@ -30,12 +31,12 @@ public class controller {
         {
             return new ResponseEntity<String>("Generated successfully...", HttpStatus.CREATED);
         }
-        return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("Map not generated", HttpStatus.NOT_IMPLEMENTED);
     }
 
     @GetMapping("/map")
     public ResponseEntity<String> map(){
-        if(admins.generateMap()) {
+        if(admins.generateMap(new searchTool())) {
             return new ResponseEntity<String>("JSON File Generated...", HttpStatus.CREATED);
         }
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);

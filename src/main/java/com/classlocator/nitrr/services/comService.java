@@ -98,6 +98,7 @@ public class comService {
                 a.getAcceptedQueries().add(q);
             } else
                 return -3;
+            adminRe.save(a);
             return 1;
         } catch (Exception e) {
             System.out.println(e.toString());
@@ -136,7 +137,7 @@ public class comService {
     // The below functionality is to be applied as soon as possible
 
     @SuppressWarnings("unchecked")
-	public boolean generateMap() {
+    public boolean generateMap(searchTool croom) {
         try {
             // Initialize JSON Object
             JSONObject jsonOutput = new JSONObject();
@@ -154,7 +155,8 @@ public class comService {
             jsonOutput.put("version", versions);
 
             for (searchTool room : rooms) {
-                List<Pair<ObjectId, Pair<String, String>>> dataArray = room.getData();
+                List<Pair<ObjectId, Pair<String, String>>> dataArray = croom.getId() == room.getId() ? croom.getData()
+                        : room.getData();
 
                 if (dataArray == null || dataArray.isEmpty()) {
                     continue; // Skip if data array is missing or empty
@@ -256,7 +258,7 @@ public class comService {
             temp.setId(q.getRoomid());
 
             // Generate new map here and will save the new map to toJSON entity
-            if (generateMap()) {
+            if (generateMap(temp)) {
 
                 /*
                  * 
@@ -324,7 +326,7 @@ public class comService {
     public Map<String, Map<String, List<query>>> getAllQueries(String rollno) {
         Map<String, Map<String, List<query>>> all = new HashMap<String, Map<String, List<query>>>();
         Map<String, List<query>> pendingMe = new HashMap<String, List<query>>();
-        pendingMe.put("Pending", queryR.findAllByRollno(rollno,false));
+        pendingMe.put("Pending", queryR.findAllByRollno(rollno, false));
         pendingMe.put("Accepted", queryR.findAllByRollno(rollno, true));
 
         Map<String, List<query>> pendingOthers = new HashMap<String, List<query>>();
