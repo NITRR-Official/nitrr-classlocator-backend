@@ -3,6 +3,7 @@ package com.classlocator.nitrr.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import com.classlocator.nitrr.interfaces.Pair;
@@ -22,5 +23,5 @@ public class searchTool {
     private Integer id;
 
     @Builder.Default
-    private List<Pair<query, Pair<String, String>>> data = new ArrayList<Pair<query, Pair<String, String>>>();
+    private List<Pair<ObjectId, Pair<String, String>>> data = new ArrayList<Pair<ObjectId, Pair<String, String>>>();
 }

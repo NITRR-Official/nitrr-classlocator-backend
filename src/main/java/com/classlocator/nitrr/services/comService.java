@@ -33,6 +33,7 @@ import com.classlocator.nitrr.repository.searchToolRepo;
 import com.classlocator.nitrr.repository.superAdminRepo;
 import com.classlocator.nitrr.repository.toJSONRepo;
 
+import org.bson.types.ObjectId;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -135,7 +136,7 @@ public class comService {
     // The below functionality is to be applied as soon as possible
 
     @SuppressWarnings("unchecked")
-    private boolean generateMap() {
+	public boolean generateMap() {
         try {
             // Initialize JSON Object
             JSONObject jsonOutput = new JSONObject();
@@ -146,14 +147,14 @@ public class comService {
 
             // Inserting the current version here into the json file
             int versions = 0;
-            if (mapp != null) {
+            if (!mapp.isEmpty()) {
                 versions = mapp.get(0).getMapVersion() + 1;
             }
 
             jsonOutput.put("version", versions);
 
             for (searchTool room : rooms) {
-                List<Pair<query, Pair<String, String>>> dataArray = room.getData();
+                List<Pair<ObjectId, Pair<String, String>>> dataArray = room.getData();
 
                 if (dataArray == null || dataArray.isEmpty()) {
                     continue; // Skip if data array is missing or empty
@@ -170,7 +171,8 @@ public class comService {
                 jsonOutput.put(room.getId().toString(), entry);
             }
 
-            toJSON json = new toJSON();
+            // Save the JSON output to MongoDB
+            toJSON json = mapp.isEmpty() ? new toJSON() : mapp.get(0);
 
             json.setMapVersion(versions);
             json.setSearchTool(jsonOutput.toJSONString());
@@ -249,7 +251,7 @@ public class comService {
             searchTool temp = room.isPresent() ? room.get() : new searchTool();
 
             // Adding/Updating the new query to the searchTool
-            temp.getData().add(new Pair<query, Pair<String, String>>(q,
+            temp.getData().add(new Pair<ObjectId, Pair<String, String>>(q.getId(),
                     new Pair<String, String>(q.getName(), q.getDescription())));
             temp.setId(q.getRoomid());
 
@@ -284,13 +286,9 @@ public class comService {
     }
 
     public boolean searchToolsGenerator() {
-        // File path to your JSON file
-
         String relativePath = "src/main/resources/templates/searchTool.json";
         File file = Paths.get(relativePath).toFile();
         query q = new query();
-        // String filePath = "D:\\Learn
-        // Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
 
         try {
             // Parse the JSON file
@@ -306,7 +304,7 @@ public class comService {
                     s.setId(Integer.parseInt(id));
 
                     s.getData()
-                            .add(new Pair<query, Pair<String, String>>(q,
+                            .add(new Pair<ObjectId, Pair<String, String>>(q.getId(),
                                     new Pair<String, String>(valueObj.get("name").toString(),
                                             valueObj.get("details").toString())));
 

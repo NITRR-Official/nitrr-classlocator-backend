@@ -39,10 +39,9 @@ public class SpringSecurity {
 
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**", "/sadmin/**", "/check", "/getAllQueries", "/map",
-                                "/download/**")
+                        .requestMatchers("/admin/**", "/sadmin/**", "/check", "/getAllQueries", "/download/**")
                         .permitAll()
-                        .requestMatchers("/requests/**", "/generate").hasRole("SUPER_ADMIN")
+                        .requestMatchers("/requests/**", "/generate", "/map").hasRole("SUPER_ADMIN")
                         .requestMatchers("/request/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class)

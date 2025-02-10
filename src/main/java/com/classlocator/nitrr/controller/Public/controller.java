@@ -30,7 +30,15 @@ public class controller {
         {
             return new ResponseEntity<String>("Generated successfully...", HttpStatus.CREATED);
         }
-        return new ResponseEntity<String>("Something went wrong...", HttpStatus.BAD_GATEWAY);
+        return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @GetMapping("/map")
+    public ResponseEntity<String> map(){
+        if(admins.generateMap()) {
+            return new ResponseEntity<String>("JSON File Generated...", HttpStatus.CREATED);
+        }
+        return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @GetMapping("/download/{version}")
