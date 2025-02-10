@@ -323,8 +323,19 @@ public class comService {
         }
     }
 
-    public List<query> getAllQueries() {
-        return queryR.findAll();
+    public Map<String, Map<String, List<query>>> getAllQueries(String rollno) {
+        Map<String, Map<String, List<query>>> all = new HashMap<String, Map<String, List<query>>>();
+        Map<String, List<query>> pendingMe = new HashMap<String, List<query>>();
+        pendingMe.put("Pending", queryR.findAllByRollno(rollno,false));
+        pendingMe.put("Accepted", queryR.findAllByRollno(rollno, true));
+
+        Map<String, List<query>> pendingOthers = new HashMap<String, List<query>>();
+        pendingOthers.put("Pending", queryR.findAllByNotRollno(rollno, false));
+        pendingOthers.put("Accepted", queryR.findAllByNotRollno(rollno, true));
+
+        all.put("Me", pendingMe);
+        all.put("Others", pendingOthers);
+        return all;
     }
 
     public Map<String, Object> authorization(Integer rollno, String password) {
