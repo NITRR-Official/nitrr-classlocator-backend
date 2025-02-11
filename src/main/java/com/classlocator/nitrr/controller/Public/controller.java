@@ -43,13 +43,15 @@ public class controller {
     }
 
     @GetMapping("/download/{version}")
-    public ResponseEntity<String> map(@PathVariable("version") Integer version) {
+    public ResponseEntity<?> map(@PathVariable("version") Integer version) {
         Pair<Integer, String> download = admins.downloadMap(version);
         if(download.getKey() == 1) {
-            return new ResponseEntity<>(download.getValue(), HttpStatus.OK);
+            return new ResponseEntity<String>(download.getValue(),HttpStatus.OK);
         }
         else if(download.getKey() == 0) return new ResponseEntity<String>("Already the latest version.", HttpStatus.OK);
-        return new ResponseEntity<String>("Something went wrong, and we couldn't update.", HttpStatus.OK);
+        else if(download.getKey() == -1) return new ResponseEntity<String>(download.getValue(), HttpStatus.OK);
+        else if(download.getKey() == -2) return new  ResponseEntity<String>("Map Update Error", HttpStatus.NOT_IMPLEMENTED);
+        return new ResponseEntity<String>("Something went wrong, and we couldn't update.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @GetMapping("/check")

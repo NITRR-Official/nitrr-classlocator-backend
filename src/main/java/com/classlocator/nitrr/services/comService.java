@@ -456,14 +456,18 @@ public class comService {
                 if (mapVer > version) {
                     return new Pair<Integer, String>(1, map.get(0).getSearchTool());
                 }
-                return new Pair<Integer, String>(0, null);
+                else if (mapVer == version){
+                    return new Pair<Integer, String>(0, null);
+                }
+                else {
+                    return new Pair<Integer, String>(1, map.get(0).getSearchTool());
+                } 
             } else
-                return new Pair<Integer, String>(-1, null);
+                return new Pair<Integer, String>(-2, null);
         } catch (Exception e) {
             System.out.println(e.toString());
-            return new Pair<Integer, String>(-1, null);
+            return new Pair<Integer, String>(-3, null);
         }
-        // if(version > )
     }
 
 }
