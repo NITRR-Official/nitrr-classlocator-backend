@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +33,7 @@ import com.classlocator.nitrr.repository.searchToolRepo;
 import com.classlocator.nitrr.repository.superAdminRepo;
 import com.classlocator.nitrr.repository.toJSONRepo;
 
+import org.bson.types.ObjectId;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -87,38 +89,55 @@ public class comService {
         return false;
     }
 
-    private admin removePending(admin user, query q) {
+    private int removePending(String user, query q) {
         boolean removed = false;
         try {
-            removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
+            admin a = adminRe.findByrollno(Integer.parseInt(user));
+            removed = a.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
             if (removed) {
-                return user;
+                a.getAcceptedQueries().add(q);
             } else
-                return null;
+                return -3;
+            adminRe.save(a);
+            return 1;
         } catch (Exception e) {
             System.out.println(e.toString());
-            return null;
+            return -3;
         }
     }
 
-    private superAdmin removePending(superAdmin user, query q) {
+    private int removePending(query q) {
         boolean removed = false;
         try {
+            Optional<superAdmin> suser = sadminRe.findById(1);
+            if (suser.isEmpty())
+                return -3;
+            superAdmin user = suser.get();
+
             removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
             if (removed) {
-                return user;
+                user.getAcceptedQueries().add(q);
             } else
-                return null;
+                return -3;
+
+            sadminRe.save(user);
+            return 1;
         } catch (Exception e) {
             System.out.println(e.toString());
-            return null;
+            return -3;
         }
     }
 
+    private String infoCheck(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            throw new NullPointerException("Input cannot be empty or only whitespace.");
+        }
+        return input;
+    }
     // The below functionality is to be applied as soon as possible
 
     @SuppressWarnings("unchecked")
-    private boolean generateMap() {
+    public boolean generateMap(searchTool croom) {
         try {
             // Initialize JSON Object
             JSONObject jsonOutput = new JSONObject();
@@ -129,14 +148,15 @@ public class comService {
 
             // Inserting the current version here into the json file
             int versions = 0;
-            if (mapp != null) {
+            if (!mapp.isEmpty()) {
                 versions = mapp.get(0).getMapVersion() + 1;
             }
 
             jsonOutput.put("version", versions);
 
             for (searchTool room : rooms) {
-                List<Pair<String, Pair<String, String>>> dataArray = room.getData();
+                List<Pair<ObjectId, Pair<String, String>>> dataArray = croom.getId() == room.getId() ? croom.getData()
+                        : room.getData();
 
                 if (dataArray == null || dataArray.isEmpty()) {
                     continue; // Skip if data array is missing or empty
@@ -153,7 +173,8 @@ public class comService {
                 jsonOutput.put(room.getId().toString(), entry);
             }
 
-            toJSON json = new toJSON();
+            // Save the JSON output to MongoDB
+            toJSON json = mapp.isEmpty() ? new toJSON() : mapp.get(0);
 
             json.setMapVersion(versions);
             json.setSearchTool(jsonOutput.toJSONString());
@@ -166,20 +187,43 @@ public class comService {
         }
     }
 
-    private query processQuery(query q, Integer s) {
+    private Map<String, ?> processQuery(Map<String, String> q, Integer rollno) {
+        Map<String, query> status = new HashMap<String, query>();
+        Map<String, Integer> error = new HashMap<String, Integer>();
         try {
-            q.setRaisedBy(s.toString());
+            Integer room = Integer.parseInt(q.get("Roomid"));
+            String roll = rollno.toString();
+
+            Optional<query> exists = queryR.findFirstByRoomidAndRaisedBy(room, roll);
+
+            query raiser = exists.isPresent() ? exists.get() : new query();
+
+            // Setting the information into the query object raiser
+            raiser.setRaisedBy(roll);
+            raiser.setRoomid(room);
+            raiser.setName(infoCheck(q.get("name")));
+            raiser.setDescription(infoCheck(q.get("description")));
 
             // Date system
             LocalDateTime currentDate = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDate = currentDate.format(formatter);
-            q.setDate(formattedDate);
-            return queryR.save(q);
-        } catch (Exception e) {
-            // TODO: handle exception
+            raiser.setDate(formattedDate);
+            queryR.save(raiser);
+            status.put("query", raiser);
+            return status;
+        } catch (NumberFormatException e) {
             System.out.println(e.toString());
-            return null;
+            error.put("error", -1);
+            return error;
+        } catch (NullPointerException e) {
+            System.out.println(e.toString());
+            error.put("error", -2);
+            return error;
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            error.put("error", -3);
+            return error;
         }
     }
 
@@ -194,32 +238,27 @@ public class comService {
              * rooms,
              * if it exist then it will create new map, otherwise it will first fill all the
              * details
-             * in mongodb using version 1 searchTool.json file created in 2022.
+             * in mongodb from version 1 searchTool.json file created in 2022.
              * 
              */
 
             if (!(search.count() > 0)) {
-                boolean status = searchTools();
+                boolean status = searchToolsGenerator();
                 if (!status) {
-                    return -1;
+                    return -2;
                 }
             }
 
             Optional<searchTool> room = search.findById(q.getRoomid());
-            searchTool temp;
-            if (room.isPresent())
-                temp = room.get();
-            else
-                temp = new searchTool();
+            searchTool temp = room.isPresent() ? room.get() : new searchTool();
 
-            if (temp.getData() == null)
-                temp.setData(new ArrayList<Pair<String, Pair<String, String>>>());
-            Pair<String, String> t = new Pair<String, String>(q.getName(), q.getDescription());
-            temp.getData().add(new Pair<String, Pair<String, String>>(q.getId().toString(), t));
+            // Adding/Updating the new query to the searchTool
+            temp.getData().add(new Pair<ObjectId, Pair<String, String>>(q.getId(),
+                    new Pair<String, String>(q.getName(), q.getDescription())));
             temp.setId(q.getRoomid());
 
             // Generate new map here and will save the new map to toJSON entity
-            if (generateMap()) {
+            if (generateMap(temp)) {
 
                 /*
                  * 
@@ -232,29 +271,26 @@ public class comService {
                  * 
                  */
 
-                int approvalDB = isSuperAdmin ? saveQuery(q, 1) : saveQuery(q, Integer.parseInt(q.getRaisedBy()), 1);
-                if (approvalDB == -1) {
-                    // rollback the generateMap() and return -1
-                    return -1;
+                int approvalDB = afterApproval(q, isSuperAdmin);
+                if (approvalDB != 1) {
+                    // rollback the generateMap() and return -3
+                    return -3;
                 }
                 search.save(temp);
                 return 1;
             } else
-                return -1;
+                return -2;
         } catch (Exception e) {
             System.out.println("Exception raised from update search tool: " + e.toString());
-            return -1;
+            return -3;
         }
 
     }
 
-    public boolean searchTools() {
-        // File path to your JSON file
-
+    public boolean searchToolsGenerator() {
         String relativePath = "src/main/resources/templates/searchTool.json";
         File file = Paths.get(relativePath).toFile();
-        // String filePath = "D:\\Learn
-        // Backend\\Classlocator-backend\\src\\main\\java\\com\\classlocator\\nitrr\\services\\template\\searchTool.json";
+        query q = new query();
 
         try {
             // Parse the JSON file
@@ -269,56 +305,68 @@ public class comService {
                     searchTool s = new searchTool();
                     s.setId(Integer.parseInt(id));
 
-                    if (s.getData() == null)
-                        s.setData(new ArrayList<Pair<String, Pair<String, String>>>());
+                    s.getData()
+                            .add(new Pair<ObjectId, Pair<String, String>>(q.getId(),
+                                    new Pair<String, String>(valueObj.get("name").toString(),
+                                            valueObj.get("details").toString())));
 
-                    Pair<String, String> p = new Pair<String, String>(valueObj.get("name").toString(),
-                            valueObj.get("details").toString());
-                    s.getData().add(new Pair<String, Pair<String, String>>("1", p));
                     search.save(s);
                 } catch (Exception e) {
-                    // TODO: handle exception
+                    // Log to be created for that json or room id where data can't be inserted
                     System.out.println(e.toString());
                 }
             }
-            System.out.println("Data successfully inserted into MongoDB!");
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.toString());
+            System.out.println(e.getMessage());
             return false;
         }
     }
 
-    public List<query> getAllQueries() {
-        return queryR.findAll();
+    public Map<String, Map<String, List<query>>> getAllQueries(String rollno) {
+        Map<String, Map<String, List<query>>> all = new HashMap<String, Map<String, List<query>>>();
+        Map<String, List<query>> pendingMe = new HashMap<String, List<query>>();
+        pendingMe.put("Pending", queryR.findAllByRollno(rollno, false));
+        pendingMe.put("Accepted", queryR.findAllByRollno(rollno, true));
+
+        Map<String, List<query>> pendingOthers = new HashMap<String, List<query>>();
+        pendingOthers.put("Pending", queryR.findAllByNotRollno(rollno, false));
+        pendingOthers.put("Accepted", queryR.findAllByNotRollno(rollno, true));
+
+        all.put("Me", pendingMe);
+        all.put("Others", pendingOthers);
+        return all;
     }
 
+    /**
+     * This function will authorize the user and return the user object if the user is legit
+     * @param rollno integer
+     * @param password string
+     * @return Map<String, Object>
+     */
+    
     public Map<String, Object> authorization(Integer rollno, String password) {
-        // This function will authorize whether the user is legit or not by comparing
-        // passwords, authentication etc.
-
-        Authentication auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(rollno.toString(), password));
+        Authentication auth = authManager
+                .authenticate(new UsernamePasswordAuthenticationToken(rollno.toString(), password));
         boolean authStatus = auth.isAuthenticated();
-        
-        System.out.println("Role: " + auth.getAuthorities().toString() + " "+ authStatus);
+
+        System.out.println("Role: " + auth.getAuthorities().toString() + " " + authStatus);
 
         Map<String, Object> attributes = new HashMap<String, Object>();
         if (authStatus) {
-
             if (auth.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
-                admin auser = adminRe.findByrollno(rollno);
-                attributes.put("admin", auser);
-                return attributes;
-            }  
-
-            if (auth.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role -> role.equals("ROLE_SUPER_ADMIN"))) {
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(role -> role.equals("ROLE_SUPER_ADMIN"))) {
                 superAdmin suser = sadminRe.findById(rollno).get();
                 attributes.put("sadmin", suser);
+                return attributes;
+            }
+
+            if (auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
+                admin auser = adminRe.findByrollno(rollno);
+                attributes.put("admin", auser);
                 return attributes;
             }
         }
@@ -326,7 +374,8 @@ public class comService {
         return null;
     }
 
-    public List<query> Queries(Integer rollno, Integer type) {
+    
+    public HashSet<query> Queries(Integer rollno, Integer type) {
         try {
             admin a = adminRe.findByrollno(rollno);
             if (type == 1)
@@ -335,7 +384,7 @@ public class comService {
                 return a.getAcceptedQueries();
         } catch (Exception e) {
             System.out.println(e.toString());
-            return new ArrayList<query>();
+            return new HashSet<query>();
         }
     }
 
@@ -353,66 +402,53 @@ public class comService {
         }
     }
 
-    public int saveQuery(query q, Integer status) {
-        try {
-            // admin user = adminRe.findByrollno(s);
-            System.out.println(q.toString());
-            List<superAdmin> suser = sadminRe.findAll();
-            if (suser.isEmpty())
-                return 0;
-
-            // Getting the admin data and setting the arraylist and updating it...
-
-            query temp = processQuery(q, 1);
-            if (temp != null) {
-                for (superAdmin ele : suser) {
-                    if (temp != null && status == 0) {
-                        ele.getPendingQueries().add(temp);
-                    } else if (temp != null && status == 1) {
-                        ele = removePending(ele, q);
-                        if (ele != null)
-                            ele.getAcceptedQueries().add(temp);
-                        else
-                            return -1;
-                    }
-                    sadminRe.save(ele);
-                }
-            } else
-                return -1;
-            return 1;
-        } catch (Exception e) {
-            System.out.print(e.toString());
-            return -1;
+    public int afterApproval(query q, boolean isSuperAdmin) {
+        if (isSuperAdmin) {
+            return removePending(q);
+        } else {
+            return removePending(q.getRaisedBy(), q);
         }
     }
 
-    public int saveQuery(query q, Integer s, Integer status) {
+    public int saveQuery(Map<String, String> q) {
+        Map<String, ?> activity = processQuery(q, 1);
         try {
-            admin user = adminRe.findByrollno(s);
+            superAdmin suser = sadminRe.findById(1).get();
+            query temp = (query) activity.get("query");
+            if (temp == null) {
+                return (int) activity.get("error");
+            }
+            suser.getPendingQueries().add(temp);
+            sadminRe.save(suser);
+            return 1;
+        } catch (Exception e) {
+            System.out.print(e.toString());
+            return -3;
+        }
+    }
 
+    public int saveQuery(Map<String, String> q, Integer rollno) {
+        Map<String, ?> activity = processQuery(q, rollno);
+
+        try {
+            admin user = adminRe.findByrollno(rollno);
             if (user == null)
-                return 0;
+                return -3;
 
             // Getting the admin data and setting the arraylist and updating it...
-            query temp = processQuery(q, s);
-            if (temp != null && status == 0)
-                user.getPendingQueries().add(temp);
-            else if (temp != null && status == 1) {
-                // First we need to move the query from pending queries to accepted queries
-                user = removePending(user, q);
-                if (user != null)
-                    user.getAcceptedQueries().add(temp);
-                else
-                    return -1;
-            } else if (temp != null && status == -1) {
-                rejectQueries(false, 0);
-            } else
-                return -1;
+            query temp = (query) activity.get("query");
+            if (temp == null) {
+                return (int) activity.get("error");
+            }
+
+            user.getPendingQueries().add(temp);
+            rejectQueries(false, 0); // This will be applied later
+
             adminRe.save(user);
             return 1;
         } catch (Exception e) {
             System.out.print(e.toString());
-            return -1;
+            return -3;
         }
     }
 
@@ -425,15 +461,18 @@ public class comService {
                 if (mapVer > version) {
                     return new Pair<Integer, String>(1, map.get(0).getSearchTool());
                 }
-                return new Pair<Integer, String>(0, null);
+                else if (mapVer == version){
+                    return new Pair<Integer, String>(0, null);
+                }
+                else {
+                    return new Pair<Integer, String>(1, map.get(0).getSearchTool());
+                } 
             } else
-                return new Pair<Integer, String>(-1, null);
+                return new Pair<Integer, String>(-2, null);
         } catch (Exception e) {
-            // TODO: handle exception
             System.out.println(e.toString());
-            return new Pair<Integer, String>(-1, null);
+            return new Pair<Integer, String>(-3, null);
         }
-        // if(version > )
     }
 
 }

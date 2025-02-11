@@ -35,7 +35,8 @@ public class query {
     @NonNull
     private String raisedBy;
     
-    private HashMap<Integer, Boolean> votes;
+    @Builder.Default
+    private HashMap<Integer, Boolean> votes = new HashMap<Integer, Boolean>();
     @Builder.Default
     private boolean superAdmin = false;
 
