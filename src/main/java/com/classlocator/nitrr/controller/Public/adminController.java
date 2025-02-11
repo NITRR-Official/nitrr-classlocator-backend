@@ -25,6 +25,13 @@ public class adminController extends controller {
 
     Map<String, String> token = new HashMap<String, String>();
 
+    /**
+     * Handles admin signup; creates or updates an admin account
+     * and returns a JWT token on success, or an error response on failure.
+     * 
+     * @return: ResponseEntity<?>
+     */
+
     @PostMapping("/signup")
     public ResponseEntity<?> createUser(@RequestBody Map<String, String> user) {
         int status = admins.saveUpdateNewAdmin(user);
@@ -43,21 +50,28 @@ public class adminController extends controller {
         return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * Handles admin login; returns a JWT token on success, or an error response on
+     * failure.
+     * 
+     * @return: ResponseEntity<?>
+     */
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> s) {
         try {
-            admin status  = (admin) admins.authorization(Integer.parseInt(s.get("rollno")),s.get("password")).get("admin");
-            token.put("Token", jwt.generateToken(status.getRollno().toString(),status.getName(),status.getDepartment(), status.getRoles().get(0)));
+            admin status = (admin) admins.authorization(Integer.parseInt(s.get("rollno")), s.get("password"))
+                    .get("admin");
+            token.put("Token", jwt.generateToken(status.getRollno().toString(), status.getName(),
+                    status.getDepartment(), status.getRoles().get(0)));
             return new ResponseEntity<Map<String, String>>(token, HttpStatus.OK);
         } catch (BadCredentialsException e) {
             return new ResponseEntity<String>("Wrong username or password", HttpStatus.UNAUTHORIZED);
         } catch (NullPointerException e) {
             return new ResponseEntity<String>("Not allowed", HttpStatus.FORBIDDEN);
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             return new ResponseEntity<String>("Invalid Roll no", HttpStatus.CONFLICT);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

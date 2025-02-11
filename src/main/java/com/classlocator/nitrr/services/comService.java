@@ -338,10 +338,14 @@ public class comService {
         return all;
     }
 
+    /**
+     * This function will authorize the user and return the user object if the user is legit
+     * @param rollno integer
+     * @param password string
+     * @return Map<String, Object>
+     */
+    
     public Map<String, Object> authorization(Integer rollno, String password) {
-        // This function will authorize whether the user is legit or not by comparing
-        // passwords, authentication etc.
-
         Authentication auth = authManager
                 .authenticate(new UsernamePasswordAuthenticationToken(rollno.toString(), password));
         boolean authStatus = auth.isAuthenticated();
@@ -370,6 +374,7 @@ public class comService {
         return null;
     }
 
+    
     public HashSet<query> Queries(Integer rollno, Integer type) {
         try {
             admin a = adminRe.findByrollno(rollno);

@@ -16,20 +16,27 @@ import com.classlocator.nitrr.entity.trash;
 @Service
 public class adminService extends comService {
 
+    /**
+     * Saves or updates an admin user based on roll number;
+     * returns 1 for new admin, 2 for update, and negative values for errors.
+     * 
+     * @return: int
+     */
     public int saveUpdateNewAdmin(Map<String, String> user) {
         try {
             int rollno = Integer.parseInt(user.get("rollno"));
-            if(rollno == 1) throw new NullPointerException();
+            if (rollno == 1)
+                throw new NullPointerException();
             admin temp = adminRe.findByrollno(rollno);
-            if(temp != null) {
-                temp  = (admin) authorization(rollno,user.get("password")).get("admin");
+            if (temp != null) {
+                temp = (admin) authorization(rollno, user.get("password")).get("admin");
                 temp.setName(user.get("name"));
                 temp.setDepartment(user.get("department"));
-                if(user.get("new_pass") != null && !user.get("new_pass").isEmpty()) {
+                if (user.get("new_pass") != null && !user.get("new_pass").isEmpty()) {
                     temp.setPassword(passwordEncoder.encode(user.get("new_pass")));
                 }
                 adminRe.save(temp);
-                return 2; 
+                return 2;
             }
 
             temp = new admin();
@@ -44,19 +51,19 @@ public class adminService extends comService {
             System.out.println(e.toString());
             return -1;
         } catch (NullPointerException e) {
-            System.out.println(e.toString()); //To be added in logs
+            System.out.println(e.toString()); // To be added in logs
             return -1;
         } catch (NumberFormatException e) {
-            System.out.println(e.toString()); //To be added in logs
+            System.out.println(e.toString()); // To be added in logs
             return -2;
         } catch (Exception e) {
-            System.out.println(e.toString().hashCode()); //To be added in logs
+            System.out.println(e.toString().hashCode()); // To be added in logs
             return -3;
         }
     }
 
-    public HashSet<trash> adminTrash(Integer rollno)
-    {
+    /** For future updates */
+    public HashSet<trash> adminTrash(Integer rollno) {
         try {
             admin a = adminRe.findByrollno(rollno);
             return a.getTrashedQueries();
@@ -64,25 +71,28 @@ public class adminService extends comService {
             System.out.println(e.toString());
             return new HashSet<trash>();
         }
-    }    
+    }
 
-    public int voting(int roll, String id)
-    {
+    /**
+     * Handles voting on a query; returns 1 for a successful vote, 0 if already
+     * voted,
+     * -1 if self-voting, and negative values for errors.
+     * 
+     * @return int
+     */
+    public int voting(int roll, String id) {
         try {
             Optional<query> q = queryR.findById(new ObjectId(id));
             if (q.isPresent()) {
                 query temp = q.get();
                 int same = Integer.parseInt(temp.getRaisedBy());
-                if(roll != same){
-                    if(!temp.getVotes().containsKey(roll)) 
-                    {
-                        temp.getVotes().put(roll,true);
-                    }
-                    else {
+                if (roll != same) {
+                    if (!temp.getVotes().containsKey(roll)) {
+                        temp.getVotes().put(roll, true);
+                    } else {
                         return 0;
                     }
-                }
-                else {
+                } else {
                     return -1;
                 }
                 queryR.save(temp);
