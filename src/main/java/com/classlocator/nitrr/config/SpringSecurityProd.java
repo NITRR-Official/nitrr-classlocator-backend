@@ -24,8 +24,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
-@Profile("dev")
-public class SpringSecurity {
+@Profile("prod")
+public class SpringSecurityProd {
 
     @Autowired
     private UserDetailsImpl adminUserDetailsImpl;
@@ -91,9 +91,9 @@ public class SpringSecurity {
 
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**", "/sadmin/**", "/generate", "/map", "/check", "/getAllQueries", "/download/**")
+                        .requestMatchers("/admin/**", "/sadmin/**", "/check", "/getAllQueries", "/download/**")
                         .permitAll()
-                        .requestMatchers("/requests/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers("/requests/**", "/generate", "/map").hasRole("SUPER_ADMIN")
                         .requestMatchers("/request/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class)

@@ -452,8 +452,6 @@ public class comService {
                 .authenticate(new UsernamePasswordAuthenticationToken(rollno.toString(), password));
         boolean authStatus = auth.isAuthenticated();
 
-        System.out.println("Role: " + auth.getAuthorities().toString() + " " + authStatus);
-
         Map<String, Object> attributes = new HashMap<String, Object>();
         if (authStatus) {
             if (auth.getAuthorities().stream()

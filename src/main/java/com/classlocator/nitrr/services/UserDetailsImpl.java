@@ -62,14 +62,11 @@ public class UserDetailsImpl implements UserDetailsService {
      * @param rollno String - The roll number of the user to be loaded.
      * @return UserDetails - Returns the user details if found in either
      *         superAdmin or admin repository.
-     * @throws UsernameNotFoundException - Thrown if the roll number does
-     *                                   not match any user in the system.
+     * @throws UsernameNotFoundException - Thrown if the roll number does not match any user in the system.
      */
 
     @Override
     public UserDetails loadUserByUsername(String rollno) throws UsernameNotFoundException {
-
-        System.out.println("From admin checking : " + rollno);
 
         Optional<superAdmin> suser = sadminRe.findById(Integer.parseInt(rollno));
         admin user = adminRe.findByrollno(Integer.parseInt(rollno));

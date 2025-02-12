@@ -1,0 +1,7 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://${MONGO_ID}:${MONGO_PASSWORD}@classlocator-cluster.e7z8i.mongodb.net/?retryWrites=true&w=majority&appName=Classlocator-cluster
+      
+server:
+  port: 8081

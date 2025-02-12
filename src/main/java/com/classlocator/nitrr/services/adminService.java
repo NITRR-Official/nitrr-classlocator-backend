@@ -57,7 +57,7 @@ public class adminService extends comService {
             System.out.println(e.toString()); // To be added in logs
             return -2;
         } catch (Exception e) {
-            System.out.println(e.toString().hashCode()); // To be added in logs
+            System.out.println(e.toString()); // To be added in logs
             return -3;
         }
     }

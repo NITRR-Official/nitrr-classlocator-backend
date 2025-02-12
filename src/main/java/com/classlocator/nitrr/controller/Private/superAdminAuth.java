@@ -78,7 +78,7 @@ public class superAdminAuth {
      *         - 500 INTERNAL SERVER ERROR: If an unknown error occurs.
      */
     @PostMapping("/approve")
-    public ResponseEntity<String> voting(@RequestParam("id") String id) {
+    public ResponseEntity<String> voting(@RequestParam String id) {
 
         int status = sadmins.approval(id);
         if (status == 1)
