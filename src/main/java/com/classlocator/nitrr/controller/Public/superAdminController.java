@@ -29,7 +29,7 @@ public class superAdminController extends controller {
      * Activates or updates a Super Admin account and returns a JWT token on
      * success,
      * or an appropriate error response on failure.
-     * 
+     * Requires super admin authorization to access.
      * @param suser Map<String, String> - A map containing Super Admin details
      *              (name, password).
      * @return ResponseEntity<?> - Returns a JWT token on success or an error
@@ -54,7 +54,7 @@ public class superAdminController extends controller {
     /**
      * Authenticates a Super Admin and returns a JWT token on successful login,
      * or an appropriate error response if authentication fails.
-     * 
+     * Requires super admin authorization to access.
      * @param s Map<String, String> - A map containing login credentials (roll
      *          number, password).
      * @return ResponseEntity<?> - Returns a JWT token on success or an error

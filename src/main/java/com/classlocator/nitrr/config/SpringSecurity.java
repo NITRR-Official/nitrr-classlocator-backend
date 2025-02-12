@@ -34,30 +34,24 @@ public class SpringSecurity {
 
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint = new CustomAuthenticationEntryPoint();
 
-    @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-        http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**", "/sadmin/**", "/check", "/getAllQueries", "/download/**")
-                        .permitAll()
-                        .requestMatchers("/requests/**", "/generate", "/map").hasRole("SUPER_ADMIN")
-                        .requestMatchers("/request/**").hasRole("ADMIN")
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(e -> e.authenticationEntryPoint(customAuthenticationEntryPoint))
-                .csrf(csrf -> csrf.disable())
-                .httpBasic(https -> {
-                });
-
-        return http.build();
-    }
-
-    public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
+    /**
+     * Custom authentication entry point for handling unauthorized access attempts.
+     * This class determines the HTTP response code and error message based on
+     * the type of authentication used in the request header. It provides
+     * customized error messages for missing, invalid, or incorrect credentials.
+     *
+     * @param request       The HTTP request that caused the authentication failure.
+     * @param response      The HTTP response to be sent to the client.
+     * @param authException The authentication exception that triggered this
+     *                      response.
+     * @throws IOException If an input/output error occurs while writing the
+     *                     response.
+     */
+    private class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
         @Override
         public void commence(HttpServletRequest request, HttpServletResponse response,
                 AuthenticationException authException) throws IOException {
-                    
+
             String authHeader = request.getHeader("Authorization");
             int httpResponse = HttpServletResponse.SC_BAD_REQUEST;
             String error = "No Auth used";
@@ -79,6 +73,50 @@ public class SpringSecurity {
         }
     }
 
+    /**
+     * Configures the security filter chain for handling HTTP requests and
+     * authentication.
+     * 
+     * This method sets up authorization rules, JWT authentication, exception
+     * handling,
+     * and CSRF protection settings.
+     * 
+     * @param http The `HttpSecurity` object to configure security settings.
+     * @return A configured `SecurityFilterChain` instance.
+     * @throws Exception If an error occurs while configuring security settings.
+     */
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/admin/**", "/sadmin/**", "/check", "/getAllQueries", "/download/**")
+                        .permitAll()
+                        .requestMatchers("/requests/**", "/generate", "/map").hasRole("SUPER_ADMIN")
+                        .requestMatchers("/request/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(e -> e.authenticationEntryPoint(customAuthenticationEntryPoint))
+                .csrf(csrf -> csrf.disable())
+                .httpBasic(https -> {
+                });
+
+        return http.build();
+    }
+
+    /**
+     * Configures and provides an {@link AuthenticationManager} bean.
+     * 
+     * This method sets up authentication using a custom user details service
+     * and a password encoder. It integrates with Spring Security's authentication
+     * system to validate user credentials.
+     *
+     * @param http The {@link HttpSecurity} object used to configure security
+     *             settings.
+     * @return An {@link AuthenticationManager} instance for handling
+     *         authentication.
+     * @throws Exception If an error occurs during authentication manager setup.
+     */
     @Bean
     AuthenticationManager authManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
@@ -86,6 +124,7 @@ public class SpringSecurity {
         return auth.build();
     }
 
+    /** The encoder for the password encryption and decryption */
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

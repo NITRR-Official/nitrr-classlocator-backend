@@ -14,30 +14,50 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * POJO (Plain Old Java Object) class representing a Query entity.
+ * 
+ * This class is mapped to the "queries" collection in MongoDB.
+ * It stores details about a query raised by an admin, including the 
+ * room ID, name, description, the user who raised it, and voting details.
+ */
 @Document(collection = "queries")
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
 @Data
 public class query {
+
+    /** Unique identifier for the query (MongoDB ObjectId). */
     @Id
     private ObjectId id;
 
+    /** Date when the query was raised. */
     @NonNull
     private String date;
+
+    /** Room ID related to the query. */
     @NonNull
     @JsonProperty("Roomid")
     private Integer Roomid;
+
+    /** Name/title of the query. */
     @NonNull
     private String name;
+
+    /** Description of the issue or request. */
     @NonNull
     private String description;
+
+    /** Roll number of the admin who raised the query. */
     @NonNull
     private String raisedBy;
-    
+
+    /** Map to store votes from admins, where key = roll number and value = vote status. */
     @Builder.Default
-    private HashMap<Integer, Boolean> votes = new HashMap<Integer, Boolean>();
+    private HashMap<Integer, Boolean> votes = new HashMap<>();
+
+    /** Flag to indicate if the query is approved by a super admin. */
     @Builder.Default
     private boolean superAdmin = false;
-
 }

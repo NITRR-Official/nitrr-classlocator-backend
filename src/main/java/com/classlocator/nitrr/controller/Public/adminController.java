@@ -28,7 +28,7 @@ public class adminController extends controller {
     /**
      * Handles admin signup; creates or updates an admin account
      * and returns a JWT token on success, or an error response on failure.
-     * 
+     * Requires admin authorization to access.
      * @return: ResponseEntity<?>
      */
 
@@ -53,7 +53,7 @@ public class adminController extends controller {
     /**
      * Handles admin login; returns a JWT token on success, or an error response on
      * failure.
-     * 
+     * Requires admin authorization to access.
      * @return: ResponseEntity<?>
      */
 

@@ -13,15 +13,29 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * POJO (Plain Old Java Object) class representing a Search Tool entity.
+ * 
+ * This class is mapped to the "searchTool" collection in MongoDB.
+ * It stores an identifier and a list of data pairs, where each entry consists of 
+ * an ObjectId and a nested pair of strings.
+ */
 @Document(collection = "searchTool")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Data
 public class searchTool {
+
+    /** Unique identifier for the search tool entry. */
     @Id
     private Integer id;
 
+    /**
+     * List of data entries where each entry consists of:
+     * - ObjectId (MongoDB identifier)
+     * - A nested pair of two strings (key-value pairs for name and details/description).
+     */
     @Builder.Default
-    private List<Pair<ObjectId, Pair<String, String>>> data = new ArrayList<Pair<ObjectId, Pair<String, String>>>();
+    private List<Pair<ObjectId, Pair<String, String>>> data = new ArrayList<>();
 }

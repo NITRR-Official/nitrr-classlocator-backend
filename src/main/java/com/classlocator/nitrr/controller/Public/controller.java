@@ -26,7 +26,7 @@ public class controller {
     /**
      * Populates search tools document to searchTool collection and returns the
      * appropriate response.
-     * 
+     * Requires authentication and access to super admin only.
      * @return ResponseEntity<String> - Returns "Generated successfully..." with
      *         HTTP status 201 (CREATED) if successful, otherwise returns
      *         "Map not generated" with HTTP status 501 (NOT_IMPLEMENTED).
@@ -43,7 +43,7 @@ public class controller {
     /**
      * Populates a JSON document to toJSON collection and returns the appropriate
      * response.
-     * 
+     * Requires authentication and access to super admin only.
      * @return ResponseEntity<String> - Returns "JSON File Generated..." with
      *         HTTP status 201 (CREATED) if successful, otherwise returns
      *         "Something went wrong..." with HTTP status 500
@@ -59,7 +59,7 @@ public class controller {
 
     /**
      * Handles the download request for a specific version of the map.
-     * 
+     * No authentication required.
      * @param version The version number of the map to be downloaded.
      * @return ResponseEntity<?> - Returns the map file as a string with
      *         HTTP status 200 (OK) if successful. If the latest version
@@ -85,7 +85,7 @@ public class controller {
 
     /**
      * Endpoint to check if the setup is running.
-     * 
+     * No authentication required.
      * @return ResponseEntity<String> - Returns a confirmation message
      *         "Yeah..., the setup is running..." with HTTP status 200 (OK).
      */
@@ -96,7 +96,7 @@ public class controller {
 
     /**
      * Endpoint to retrieve all queries for the authenticated user.
-     * 
+     * List all queries if unauthenticated, otherwise list queries for the authenticated user.
      * @return ResponseEntity<?> - Returns a list of queries retrieved
      *         based on the authenticated user's name with HTTP status 200 (OK).
      */

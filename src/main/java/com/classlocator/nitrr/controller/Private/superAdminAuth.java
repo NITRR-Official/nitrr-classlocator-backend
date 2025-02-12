@@ -24,6 +24,14 @@ public class superAdminAuth {
 
     // Special query raise system for super admin to be created here
 
+    /**
+     * Deactivates the Super Admin account.
+     * Requires super admin authorization to access.
+     * 
+     * @return A ResponseEntity with an appropriate HTTP status and message:
+     *         - 204 NO CONTENT: If the Super Admin is successfully deactivated.
+     *         - 500 INTERNAL SERVER ERROR: If an unknown error occurs.
+     */
     @DeleteMapping("/remove")
     public ResponseEntity<String> deactivateAdmin() {
         if (sadmins.deleteSuperAdmin() == 1)
@@ -32,6 +40,18 @@ public class superAdminAuth {
             return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * Handles raising a query by processing the provided request data.
+     * Requires super admin authorization to access.
+     * 
+     * @param q A map containing query details, including name, description, and
+     *          room ID.
+     * @return A ResponseEntity with an appropriate HTTP status and message:
+     *         - 201 CREATED: If the query is successfully raised.
+     *         - 409 CONFLICT: If the provided room ID is invalid.
+     *         - 400 BAD REQUEST: If the name or description is missing.
+     *         - 500 INTERNAL SERVER ERROR: If an unknown error occurs.
+     */
     @PostMapping("/raiseQuery")
     public ResponseEntity<String> raiseQuery(@RequestBody Map<String, String> q) {
         int status = sadmins.saveQuery(q);
@@ -45,6 +65,18 @@ public class superAdminAuth {
             return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * Approves a query based on the provided query ID.
+     * Requires super admin authorization to access.
+     * 
+     * @param id The unique identifier of the query to be approved.
+     * @return A ResponseEntity with an appropriate HTTP status and message:
+     *         - 200 OK: If the query is successfully approved.
+     *         - 200 OK: If the query was already approved.
+     *         - 400 BAD REQUEST: If the query was not found.
+     *         - 501 NOT IMPLEMENTED: If the map was not generated.
+     *         - 500 INTERNAL SERVER ERROR: If an unknown error occurs.
+     */
     @PostMapping("/approve")
     public ResponseEntity<String> voting(@RequestParam("id") String id) {
 
