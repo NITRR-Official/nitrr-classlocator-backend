@@ -14,7 +14,10 @@ import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.entity.superAdmin;
 import com.classlocator.nitrr.entity.trash;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class superAdminService extends comService {
 
     /**
@@ -40,6 +43,7 @@ public class superAdminService extends comService {
                     sAdmin.setPassword(passwordEncoder.encode(user.get("new_pass")));
                 }
                 sadminRe.save(sAdmin);
+                log.info("Super Admin Updated successfully");
                 return 0;
             }
 
@@ -49,15 +53,16 @@ public class superAdminService extends comService {
             suser.setPassword(passwordEncoder.encode(user.get("password")));
             suser.setRoles(Arrays.asList("SUPER_ADMIN"));
             sadminRe.save(suser);
+            log.info("Super Admin Activated successfully");
             return 1;
         } catch (BadCredentialsException e) {
-            System.out.println(e.toString());
+            log.error("Invalid password for super admin", e);
             return -1;
         } catch (NullPointerException e) {
-            System.out.println(e.toString());
+            log.error("Unauthorized access to super admin", e);
             return -2;
         } catch (Exception e) {
-            System.out.println(e.toString());
+            log.error("Internal server error by super admin", e);
             return -3;
         }
     }
@@ -72,9 +77,10 @@ public class superAdminService extends comService {
     public int deleteSuperAdmin() {
         try {
             sadminRe.deleteById(1);
+            log.info("Super Admin deactivated");
             return 1;
         } catch (Exception e) {
-            System.out.println(e.toString()); // To be added in log file
+            log.error("Super Admin deactivation failed", e);
             return -1;
         }
     }
@@ -102,8 +108,6 @@ public class superAdminService extends comService {
      */
     public int approval(String id) {
         try {
-            // Direct rejection/approval is handled here
-
             Optional<query> q = queryR.findById(new ObjectId(id));
             if (q.isPresent()) {
                 query temp = q.get();
@@ -113,15 +117,20 @@ public class superAdminService extends comService {
                     int appStatus = status == 1 ? updateSearchTool(temp, true) : updateSearchTool(temp, false);
                     if (appStatus != 1)
                         return appStatus;
-                } else
+                } else {
+                    log.warn("Query {} already approved.", id);
                     return 0;
+                }
+                
                 queryR.save(temp);
+                log.info("Query {} approved successfully", id);
                 return 1;
             } else {
+                log.warn("Query {} not found for approval.", id);
                 return -1;
             }
         } catch (Exception e) {
-            System.out.println(e.toString());
+            log.error("Internal server error by super admin for query {} :", id, e);
             return -3;
         }
     }

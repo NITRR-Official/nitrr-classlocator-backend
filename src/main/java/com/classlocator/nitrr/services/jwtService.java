@@ -17,8 +17,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class jwtService {
 
     private String secretKey = "";
@@ -107,6 +109,7 @@ public class jwtService {
      * @return String - The generated JWT token.  
      */
     public String generateToken(String rollno, String name, String department, String role) {
+        log.info("Generating the token for user {}, role {} : ", rollno, role);
         Map<String, Object> claims = new HashMap<String, Object>();
         claims.put("role", role);
         claims.put("name", name);
@@ -138,6 +141,7 @@ public class jwtService {
      * @return boolean - True if the token is valid, otherwise false.  
      */
     public boolean validateToken(String token, UserDetails userDetails) {
+        log.info("Validating the token for user {} : ", userDetails.getUsername());
         final String userName = extractRoll(token);
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

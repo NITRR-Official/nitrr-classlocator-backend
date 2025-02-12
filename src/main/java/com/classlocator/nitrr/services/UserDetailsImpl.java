@@ -14,7 +14,10 @@ import com.classlocator.nitrr.entity.superAdmin;
 import com.classlocator.nitrr.repository.adminRepo;
 import com.classlocator.nitrr.repository.superAdminRepo;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Component
+@Slf4j
 public class UserDetailsImpl implements UserDetailsService {
 
     @Autowired
@@ -72,9 +75,12 @@ public class UserDetailsImpl implements UserDetailsService {
         admin user = adminRe.findByrollno(Integer.parseInt(rollno));
 
         if (suser.isPresent()) {
+            log.info("Super Admin requested: " + suser.get().getId());
             return helper(suser.get());
-        } else if (user != null)
+        } else if (user != null) {
+            log.info("Admin requested: " + user.getRollno());
             return helper(user);
+        }
 
         throw new UsernameNotFoundException("User roll number not found: " + rollno);
     }

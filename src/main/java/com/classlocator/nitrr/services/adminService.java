@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,8 @@ import com.classlocator.nitrr.entity.trash;
 
 @Service
 public class adminService extends comService {
+
+    private static final Logger logger = LoggerFactory.getLogger(adminService.class);
 
     /**
      * Saves or updates an admin user based on roll number;
@@ -48,16 +52,16 @@ public class adminService extends comService {
             adminRe.save(temp);
             return 1;
         } catch (BadCredentialsException e) {
-            System.out.println(e.toString());
+            logger.error("Invalid roll number or password {} :", user.get("rollno"), e);
             return -1;
         } catch (NullPointerException e) {
-            System.out.println(e.toString()); // To be added in logs
+            logger.error("User {} not authorized",user.get("rollno"), e);
             return -1;
         } catch (NumberFormatException e) {
-            System.out.println(e.toString()); // To be added in logs
+            logger.error("Invalid roll number {}", user.get("rollno"), e);
             return -2;
         } catch (Exception e) {
-            System.out.println(e.toString()); // To be added in logs
+            logger.error("Internal server error by {}",user.get("rollno"), e);
             return -3;
         }
     }
@@ -68,7 +72,7 @@ public class adminService extends comService {
             admin a = adminRe.findByrollno(rollno);
             return a.getTrashedQueries();
         } catch (Exception e) {
-            System.out.println(e.toString());
+            logger.error("Internal Server error by {}",rollno, e);
             return new HashSet<trash>();
         }
     }
@@ -90,18 +94,23 @@ public class adminService extends comService {
                     if (!temp.getVotes().containsKey(roll)) {
                         temp.getVotes().put(roll, true);
                     } else {
+                        logger.warn("Query {} already voted by user {}", id, roll);
                         return 0;
                     }
                 } else {
+                    logger.warn("Self-voting by {} for query {}", roll, id);
                     return -1;
                 }
+
+                logger.info("Query {} voted by user {}", id, roll);
                 queryR.save(temp);
                 return 1;
             } else {
+                logger.warn("Query {} not found for voting by {}.", id, roll);
                 return -2;
             }
         } catch (Exception e) {
-            System.out.println(e.toString());
+            logger.error("Internal server error by {} for query {} :", roll, id, e);
             return -3;
         }
     }

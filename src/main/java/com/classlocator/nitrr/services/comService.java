@@ -31,11 +31,14 @@ import com.classlocator.nitrr.repository.searchToolRepo;
 import com.classlocator.nitrr.repository.superAdminRepo;
 import com.classlocator.nitrr.repository.toJSONRepo;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.bson.types.ObjectId;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 @Service
+@Slf4j
 public class comService {
     // here isapproved, getAllQueries, saveQuery, authorization
 
@@ -76,25 +79,23 @@ public class comService {
     private int removePending(String user, query q) {
         boolean removed = false;
         try {
-            // Fetch the admin using the roll number
             admin a = adminRe.findByrollno(Integer.parseInt(user));
 
-            // Remove the query from pending queries
             removed = a.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
 
-            // If removed, add to accepted queries
             if (removed) {
                 a.getAcceptedQueries().add(q);
             } else {
-                return -3; // Query not found in pending list
+                log.error("Query {} not found in {} pending list :", q.getId(), user);
+                return -3;
             }
 
-            // Save the updated admin entity
             adminRe.save(a);
-            return 1; // Operation successful
+            log.info("Query {} moved to accepted list for {} :", q.getId(), user);
+            return 1;
         } catch (Exception e) {
-            System.out.println(e.toString()); // Log the exception
-            return -3; // Error occurred
+            log.error("Internal server error by {} for query {} :", user, q.getId(), e);
+            return -3;
         }
     }
 
@@ -108,29 +109,29 @@ public class comService {
     private int removePending(query q) {
         boolean removed = false;
         try {
-            // Fetch the super admin from the repository
             Optional<superAdmin> suser = sadminRe.findById(1);
             if (suser.isEmpty())
-                return -3; // Super admin not found
+            {
+                log.error("Super admin not found for query {} :", q.getId());
+                return -3;
+            }
 
             superAdmin user = suser.get();
-
-            // Remove the query from pending queries
             removed = user.getPendingQueries().removeIf(x -> x.getId().equals(q.getId()));
 
-            // If removed, add to accepted queries
             if (removed) {
                 user.getAcceptedQueries().add(q);
             } else {
-                return -3; // Query not found in pending list
+                log.error("Query {} not found in super admin pending list :", q.getId());
+                return -3; 
             }
 
-            // Save the updated super admin entity
             sadminRe.save(user);
-            return 1; // Operation successful
+            log.info("Query {} moved to accepted list for super admin :", q.getId());
+            return 1;
         } catch (Exception e) {
-            System.out.println(e.toString()); // Log the exception
-            return -3; // Error occurred
+            log.error("Internal server error for query {} :", q.getId(), e);
+            return -3;
         }
     }
 
@@ -143,8 +144,10 @@ public class comService {
      */
     private int afterApproval(query q, boolean isSuperAdmin) {
         if (isSuperAdmin) {
+            log.info("Query {} to be moved for super admin.", q.getId());
             return removePending(q);
         } else {
+            log.info("Query {} to be moved for admin.", q.getId());
             return removePending(q.getRaisedBy(), q);
         }
     }
@@ -177,36 +180,33 @@ public class comService {
             Integer room = Integer.parseInt(q.get("Roomid"));
             String roll = rollno.toString();
 
-            // Check if the query already exists for the given room and user
             Optional<query> exists = queryR.findFirstByRoomidAndRaisedBy(room, roll);
             query raiser = exists.orElse(new query());
 
-            // Set query details
             raiser.setRaisedBy(roll);
             raiser.setRoomid(room);
             raiser.setName(infoCheck(q.get("name")));
             raiser.setDescription(infoCheck(q.get("description")));
 
-            // Generate and set the current date and time
             LocalDateTime currentDate = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             raiser.setDate(currentDate.format(formatter));
 
-            // Save the query and return success response
             queryR.save(raiser);
             status.put("query", raiser);
+            log.info("Query for room {} saved into roll number {} successfully.", q.get("Roomid"), roll);
             return status;
         } catch (NumberFormatException e) {
-            System.out.println(e.toString());
-            error.put("error", -1); // Invalid Roomid format
+            error.put("error", -1);
+            log.error("Invalid room id {} by {} :", q.get("Roomid") ,rollno, e);
             return error;
         } catch (NullPointerException e) {
-            System.out.println(e.toString());
-            error.put("error", -2); // Missing required fields
+            error.put("error", -2);
+            log.error("Missing required fields for room id {} by {} :", q.get("Roomid") ,rollno, e);
             return error;
         } catch (Exception e) {
-            System.out.println(e.toString());
-            error.put("error", -3); // General error
+            error.put("error", -3);
+            log.error("Internal server error by {} for room id {} :", rollno, q.get("Roomid"), e);
             return error;
         }
     }
@@ -223,8 +223,6 @@ public class comService {
      */
 
     protected int updateSearchTool(query q, boolean isSuperAdmin) {
-        // After approval this function will update the searchTool in mongodb and will
-        // update the maps
         try {
 
             /*
@@ -235,20 +233,18 @@ public class comService {
             if (!(search.count() > 0)) {
                 boolean status = searchToolsGenerator();
                 if (!status) {
+                    log.error("Failed to generate search tool collection.");
                     return -2;
                 }
+                log.info("Search tool collection generated successfully.");
             }
+            else log.info("Search tool collection already exists.");
 
-            /*
-             * Step 2: Retrieve or create a new searchTool instance for the given room ID.
-             */
+            /* Step 2: Retrieve or create a new searchTool instance for the given room ID. */
             Optional<searchTool> room = search.findById(q.getRoomid());
             searchTool temp = room.isPresent() ? room.get() : new searchTool();
 
-            /*
-             * Step 3: Add the new query information to the searchTool's data list.
-             */
-            // Adding/Updating the new query to the searchTool
+            /* Step 3: Add the new query information to the searchTool's data list. */
             temp.getData().add(new Pair<ObjectId, Pair<String, String>>(q.getId(),
                     new Pair<String, String>(q.getName(), q.getDescription())));
             temp.setId(q.getRoomid());
@@ -273,17 +269,21 @@ public class comService {
                 int approvalDB = afterApproval(q, isSuperAdmin);
                 if (approvalDB != 1) {
                     // rollback the generateMap() and return -3
+                    log.error("Failed to move query {} to approved list.", q.getId());
                     return -3;
                 }
                 search.save(temp);
+                log.info("Query {} moved to approved list successfully.", q.getId());
                 return 1;
             } else
+            {
+                log.error("Failed to generate toJSON map for query {}.", q.getId());
                 return -2;
+            }
         } catch (Exception e) {
-            System.out.println("Exception raised from update search tool: " + e.toString());
+            log.error("Internal server error for query {} :", q.getId(), e);
             return -3;
         }
-
     }
 
     /** In future, the below functions will be implemented */
@@ -323,18 +323,17 @@ public class comService {
     @SuppressWarnings("unchecked")
     public boolean generateMap(searchTool croom) {
         try {
-            // Initialize JSON Object
             JSONObject jsonOutput = new JSONObject();
             List<searchTool> rooms = search.findAll();
 
-            // Getting whether map exist or not
             List<toJSON> mapp = searchTool.findAll();
 
-            // Inserting the current version here into the json file
             int versions = 0;
             if (!mapp.isEmpty()) {
                 versions = mapp.get(0).getMapVersion() + 1;
+                log.info("Map version updated to {}.", versions);
             }
+            else log.info("Map version initialized to 0.");
 
             jsonOutput.put("version", versions);
 
@@ -343,13 +342,12 @@ public class comService {
                         : room.getData();
 
                 if (dataArray == null || dataArray.isEmpty()) {
-                    continue; // Skip if data array is missing or empty
+                    continue;
                 }
 
                 String name = dataArray.get(dataArray.size() - 1).getValue().getKey();
                 String details = dataArray.get(dataArray.size() - 1).getValue().getValue();
 
-                // Add to JSON output
                 JSONObject entry = new JSONObject();
                 entry.put("name", name);
                 entry.put("details", details);
@@ -357,16 +355,16 @@ public class comService {
                 jsonOutput.put(room.getId().toString(), entry);
             }
 
-            // Save the JSON output to MongoDB
             toJSON json = mapp.isEmpty() ? new toJSON() : mapp.get(0);
 
             json.setMapVersion(versions);
             json.setSearchTool(jsonOutput.toJSONString());
 
             searchTool.save(json);
+            log.info("Map generated successfully.");
             return true;
         } catch (Exception e) {
-            System.out.println(e.toString());
+            log.error("Failed to generate map.", e);
             return false;
         }
     }
@@ -385,11 +383,9 @@ public class comService {
         query q = new query();
 
         try {
-            // Parse the JSON file
             JSONParser parser = new JSONParser();
             JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(file));
 
-            // Loop through JSON and prepare MongoDB documents
             for (Object key : jsonObject.keySet()) {
                 try {
                     String id = (String) key;
@@ -404,13 +400,12 @@ public class comService {
 
                     search.save(s);
                 } catch (Exception e) {
-                    // Log to be created for that json or room id where data can't be inserted
-                    System.out.println(e.toString());
+                    log.error("Failed to insert data for room {} :", key, e.getMessage());
                 }
             }
             return true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Internal server error while generating search tools.", e);
             return false;
         }
     }
@@ -459,6 +454,7 @@ public class comService {
                     .anyMatch(role -> role.equals("ROLE_SUPER_ADMIN"))) {
                 superAdmin suser = sadminRe.findById(rollno).get();
                 attributes.put("sadmin", suser);
+                log.info("Super admin {} authorized successfully.", rollno);
                 return attributes;
             }
 
@@ -467,10 +463,12 @@ public class comService {
                     .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
                 admin auser = adminRe.findByrollno(rollno);
                 attributes.put("admin", auser);
+                log.info("Admin {} authorized successfully.", rollno);
                 return attributes;
             }
         }
 
+        log.error("Authorization failed for {}.", rollno);
         return null;
     }
 
@@ -489,13 +487,15 @@ public class comService {
             superAdmin suser = sadminRe.findById(1).get();
             query temp = (query) activity.get("query");
             if (temp == null) {
+                log.warn("Query for {} not processed successfully.", q.get("Roomid"));
                 return (int) activity.get("error");
             }
             suser.getPendingQueries().add(temp);
             sadminRe.save(suser);
+            log.info("Query for {} saved successfully.", q.get("Roomid"));
             return 1;
         } catch (Exception e) {
-            System.out.print(e.toString());
+            log.error("Internal server error for {} :", q.get("Roomid"), e); 
             return -3;
         }
     }
@@ -517,11 +517,14 @@ public class comService {
         try {
             admin user = adminRe.findByrollno(rollno);
             if (user == null)
+            {
+                log.error("Admin {} not found.", rollno);
                 return -3;
+            }
 
-            // Getting the admin data and setting the arraylist and updating it...
             query temp = (query) activity.get("query");
             if (temp == null) {
+                log.warn("Query for {} not processed successfully.", q.get("Roomid"));
                 return (int) activity.get("error");
             }
 
@@ -529,9 +532,10 @@ public class comService {
             rejectQueries(false, 0); // This will be applied later
 
             adminRe.save(user);
+            log.info("Query for {} room raised by {} saved successfully.", q.get("Roomid"), rollno);
             return 1;
         } catch (Exception e) {
-            System.out.print(e.toString());
+            log.error("Internal server error for room {} by {} :", q.get("Roomid"), rollno, e);
             return -3;
         }
     }
@@ -553,17 +557,18 @@ public class comService {
             int mapVer = -1;
             if (map != null) {
                 mapVer = map.get(0).getMapVersion();
-                if (mapVer > version) {
-                    return new Pair<Integer, String>(1, map.get(0).getSearchTool());
-                } else if (mapVer == version) {
+                log.info("Map version {} downloaded successfully.", mapVer);
+                if (mapVer == version) {
                     return new Pair<Integer, String>(0, null);
                 } else {
                     return new Pair<Integer, String>(1, map.get(0).getSearchTool());
                 }
-            } else
+            } else {
+                log.warn("No map found in the database, please contact super admin immediately.", mapVer);
                 return new Pair<Integer, String>(-2, null);
+            }
         } catch (Exception e) {
-            System.out.println(e.toString());
+            log.error("Internal server error while updating the map version {}.", version, e);
             return new Pair<Integer, String>(-3, null);
         }
     }
