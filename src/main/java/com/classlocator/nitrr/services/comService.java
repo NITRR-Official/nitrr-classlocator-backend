@@ -555,16 +555,17 @@ public class comService {
         try {
             List<toJSON> map = searchTool.findAll();
             int mapVer = -1;
-            if (map != null) {
-                mapVer = map.get(0).getMapVersion();
+            if (!map.isEmpty()) {
+                toJSON mapp = map.get(0);
+                mapVer = mapp.getMapVersion();
                 log.info("Map version {} downloaded successfully.", mapVer);
                 if (mapVer == version) {
                     return new Pair<Integer, String>(0, null);
                 } else {
-                    return new Pair<Integer, String>(1, map.get(0).getSearchTool());
+                    return new Pair<Integer, String>(1, mapp.getSearchTool());
                 }
             } else {
-                log.warn("No map found in the database, please contact super admin immediately.", mapVer);
+                log.warn("No map found in the database, please contact super admin immediately.");
                 return new Pair<Integer, String>(-2, null);
             }
         } catch (Exception e) {
