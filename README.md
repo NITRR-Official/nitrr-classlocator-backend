@@ -118,7 +118,7 @@ pkill -f ClassLocator
 
 #### 1. Signup or register
 
-```http
+```
   POST /admin/signup
 ```
 
@@ -132,18 +132,18 @@ pkill -f ClassLocator
 
 - Expected Output
     - If new user registers, JWT token generated
-    ```http
+    ```
     { "created": "eyJhbGciO..." }
     ```
     - If user details updated
-    ```http
+    ```
     { "updated": "eyJhbGciO..." }
     ```
     - Note: If **new_pass** is provided and authorization is successful then the value provided to **new_pass** will be new password.
 
 #### 2. Login or generate new token
 
-```http
+```
   POST /admin/login
 ```
 
@@ -153,12 +153,12 @@ pkill -f ClassLocator
 | `password`      | `string` | **Required**. |
 
 - Expected Output
-```http
+```
   { "Token": "eyJhbGciOiJIUzI1NiJ9..." }
 ```
 
 #### 3. Query Raise
-```http
+```
   POST /request/raiseQuery
 ```
 
@@ -175,12 +175,12 @@ pkill -f ClassLocator
 | `Description`      | `string` | **Required**. |
 
 - Expected Output
-```http
+```
   Query raised.
 ```
 
 #### 4. Voting
-```http
+```
   POST /request/vote?id={queryId}
 ```
 
@@ -195,7 +195,7 @@ pkill -f ClassLocator
 | `queryId`      | `string` | **Required**. |
 
 - Expected Output
-```http
+```
   Vote successful.
 ```
 
@@ -205,7 +205,7 @@ pkill -f ClassLocator
 
 #### 1. Activate or create Super Admin (Only once)
 
-```http
+```
   POST /sadmin/signup
 ```
 
@@ -218,18 +218,18 @@ pkill -f ClassLocator
 
 - Expected Output
     - If new user registers, JWT token generated
-    ```http
+    ```
     { "created": "eyJhbGciO..." }
     ```
     - If user details updated
-    ```http
+    ```
     { "updated": "eyJhbGciO..." }
     ```
     - Note: If **new_pass** is provided and authorization is successful then the value provided to **new_pass** will be new password.
 
 #### 2. Login or generate new token
 
-```http
+```
   POST /sadmin/login
 ```
 
@@ -238,12 +238,12 @@ pkill -f ClassLocator
 | `password`      | `string` | **Required**. |
 
 - Expected Output
-```http
+```
   { "Token": "eyJhbGciOiJIUzI1NiJ9..." }
 ```
 
 #### 3. Query Raise
-```http
+```
   POST /requests/raiseQuery
 ```
 
@@ -260,12 +260,12 @@ pkill -f ClassLocator
 | `Description`      | `string` | **Required**. |
 
 - Expected Output
-```http
+```
   Query raised.
 ```
 
 #### 4. Voting
-```http
+```
   POST /requests/approve?id={queryId}
 ```
 
@@ -280,12 +280,12 @@ pkill -f ClassLocator
 | `queryId`      | `string` | **Required**. |
 
 - Expected Output
-```http
+```
   Approved
 ```
 
 #### 5. Deactivate Admin
-```http
+```
   DELETE /requests/remove
 ```
 
@@ -295,27 +295,27 @@ pkill -f ClassLocator
 | `Bearer `      | `Token` | **Required**. JWT Token|
 
 - Expected Output
-```http
+```
   Super Admin deactivated
 ```
 
 ### General APIs
 #### 1. Initial Checks
-```http
+```
   GET /check
 ```
 - Expected Output
-```http
+```
   Yeah..., the setup is running...
 ```
 
 #### 2. All Queries
-```http
+```
   GET /getAllQueries
 ```
 
 - Expected Output
-```http
+```
   {
     "Others": {
         "Pending": [
@@ -387,7 +387,7 @@ pkill -f ClassLocator
 - Note: If not authorized, only other queries will be shown.
 
 #### 3. Generating Raw Map
-```http
+```
   GET /generate
 ```
 
@@ -397,12 +397,12 @@ pkill -f ClassLocator
 | `prod `      | `Super Admin` | **Required**.|
 
 - Expected Output
-```http
+```
   Generated successfully...
 ```
 
 #### 4. Generating JSON file with version
-```http
+```
   GET /map
 ```
 
@@ -412,12 +412,12 @@ pkill -f ClassLocator
 | `prod `      | `Super Admin` | **Required**.|
 
 - Expected Output
-```http
+```
   JSON File Generated...
 ```
 
 #### 5. Download Map
-```http
+```
   GET /download/{version}
 ```
 
@@ -426,7 +426,7 @@ pkill -f ClassLocator
 | `version`      | `Number` | **Required**. |
 
 - Expected Output
-```http
+```
   {"230":{"name":"F52","details":"Classroom, Dept. of Biotechnology"}}
 ```
 
