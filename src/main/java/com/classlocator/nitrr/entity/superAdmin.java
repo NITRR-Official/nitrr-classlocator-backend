@@ -41,6 +41,12 @@ public class superAdmin {
     @Builder.Default
     private String name = "Super Admin";
 
+    @NonNull
+    private Integer phone;
+
+    @NonNull 
+    private String email;
+
     /**
      * Queries that are currently pending review by the super admin.
      * This is referenced from another collection in MongoDB.

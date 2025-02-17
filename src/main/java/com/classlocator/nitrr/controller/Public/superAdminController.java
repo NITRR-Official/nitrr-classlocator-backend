@@ -23,7 +23,7 @@ public class superAdminController extends controller {
     @Autowired
     private superAdminService sadmins;
 
-    Map<String, String> token = new HashMap<String, String>();
+    Map<String, String> token = new HashMap<>();
 
     /**
      * Activates or updates a Super Admin account and returns a JWT token on
@@ -43,12 +43,12 @@ public class superAdminController extends controller {
             String action = status == 1 ? "Super Admin created" : "Super Admin updated";
             HttpStatus httpStatus = status == 1 ? HttpStatus.CREATED : HttpStatus.OK;
             token.put(action, jwt.generateToken("1", suser.get("name"), "NIT Raipur", "SUPER_ADMIN"));
-            return new ResponseEntity<Map<String, String>>(token, httpStatus);
+            return new ResponseEntity<>(token, httpStatus);
         } else if (status == -1)
-            return new ResponseEntity<String>("Wrong password", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Wrong password", HttpStatus.UNAUTHORIZED);
         else if (status == -2)
-            return new ResponseEntity<String>("Unauthorized", HttpStatus.FORBIDDEN);
-        return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Unauthorized", HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -68,13 +68,13 @@ public class superAdminController extends controller {
                     .get("sadmin");
             token.put("Token ",
                     jwt.generateToken(status.getId().toString(), status.getName(), "NIT Raipur", "SUPER_ADMIN"));
-            return new ResponseEntity<Map<String, String>>(token, HttpStatus.OK);
+            return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (BadCredentialsException e) {
-            return new ResponseEntity<String>("Wrong password", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Wrong password", HttpStatus.UNAUTHORIZED);
         } catch (NullPointerException e) {
-            return new ResponseEntity<String>("Not allowed", HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("Not allowed", HttpStatus.FORBIDDEN);
         } catch (Exception e) {
-            return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
