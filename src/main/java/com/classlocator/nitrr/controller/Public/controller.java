@@ -35,7 +35,7 @@ public class controller {
     public ResponseEntity<String> generate() {
 
         if (admins.searchToolsGenerator()) {
-            return new ResponseEntity<String>("Generated successfully...", HttpStatus.CREATED);
+            return new ResponseEntity<>("Generated successfully...", HttpStatus.CREATED);
         }
         return new ResponseEntity<>("Map not generated", HttpStatus.NOT_IMPLEMENTED);
     }
@@ -52,9 +52,9 @@ public class controller {
     @GetMapping("/map")
     public ResponseEntity<String> map() {
         if (admins.generateMap(new searchTool())) {
-            return new ResponseEntity<String>("JSON File Generated...", HttpStatus.CREATED);
+            return new ResponseEntity<>("JSON File Generated...", HttpStatus.CREATED);
         }
-        return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -72,14 +72,14 @@ public class controller {
     public ResponseEntity<?> map(@PathVariable("version") Integer version) {
         Pair<Integer, String> download = admins.downloadMap(version);
         if (download.getKey() == 1) {
-            return new ResponseEntity<String>(download.getValue(), HttpStatus.OK);
+            return new ResponseEntity<>(download.getValue(), HttpStatus.OK);
         } else if (download.getKey() == 0)
-            return new ResponseEntity<String>("Already the latest version.", HttpStatus.OK);
+            return new ResponseEntity<>("Already the latest version.", HttpStatus.OK);
         else if (download.getKey() == -1)
-            return new ResponseEntity<String>(download.getValue(), HttpStatus.OK);
+            return new ResponseEntity<>(download.getValue(), HttpStatus.OK);
         else if (download.getKey() == -2)
-            return new ResponseEntity<String>("Map Update Error", HttpStatus.NOT_IMPLEMENTED);
-        return new ResponseEntity<String>("Something went wrong, and we couldn't update.",
+            return new ResponseEntity<>("Map Update Error", HttpStatus.NOT_IMPLEMENTED);
+        return new ResponseEntity<>("Something went wrong, and we couldn't update.",
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -91,7 +91,7 @@ public class controller {
      */
     @GetMapping("/check")
     public ResponseEntity<String> check() {
-        return new ResponseEntity<String>("Yeah..., the setup is running...", HttpStatus.OK);
+        return new ResponseEntity<>("Yeah..., the setup is running...", HttpStatus.OK);
     }
 
     /**

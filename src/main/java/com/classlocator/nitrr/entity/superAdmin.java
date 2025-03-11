@@ -37,6 +37,9 @@ public class superAdmin {
     @NonNull
     private String password;
 
+    @Builder.Default
+    private boolean active = true;
+
     /** Name of the super admin, defaulting to "Super Admin". */
     @Builder.Default
     private String name = "Super Admin";

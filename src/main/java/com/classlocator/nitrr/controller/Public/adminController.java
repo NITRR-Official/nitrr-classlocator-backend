@@ -23,7 +23,7 @@ public class adminController extends controller {
     @Autowired
     private adminService admins;
 
-    Map<String, String> token = new HashMap<String, String>();
+    Map<String, String> token = new HashMap<>();
 
     /**
      * Handles admin signup; creates or updates an admin account
@@ -42,12 +42,12 @@ public class adminController extends controller {
             token.put(action, jwt.generateToken(user.get("rollno"),
                     user.get("name"),
                     user.get("department"), "ADMIN"));
-            return new ResponseEntity<Map<String, String>>(token, httpStatus);
+            return new ResponseEntity<>(token, httpStatus);
         } else if (status == -1)
-            return new ResponseEntity<String>("Wrong username or password", HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("Wrong username or password", HttpStatus.FORBIDDEN);
         else if (status == -2)
-            return new ResponseEntity<String>("Invalid Roll no", HttpStatus.CONFLICT);
-        return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Invalid Roll no", HttpStatus.CONFLICT);
+        return new ResponseEntity<>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -64,15 +64,15 @@ public class adminController extends controller {
                     .get("admin");
             token.put("Token", jwt.generateToken(status.getRollno().toString(), status.getName(),
                     status.getDepartment(), status.getRoles().get(0)));
-            return new ResponseEntity<Map<String, String>>(token, HttpStatus.OK);
+            return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (BadCredentialsException e) {
-            return new ResponseEntity<String>("Wrong username or password", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Wrong username or password", HttpStatus.UNAUTHORIZED);
         } catch (NullPointerException e) {
-            return new ResponseEntity<String>("Not allowed", HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("Not allowed", HttpStatus.FORBIDDEN);
         } catch (NumberFormatException e) {
-            return new ResponseEntity<String>("Invalid Roll no", HttpStatus.CONFLICT);
+            return new ResponseEntity<>("Invalid Roll no", HttpStatus.CONFLICT);
         } catch (Exception e) {
-            return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
