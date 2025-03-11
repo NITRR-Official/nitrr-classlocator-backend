@@ -35,9 +35,9 @@ public class superAdminAuth {
     @DeleteMapping("/remove")
     public ResponseEntity<String> deactivateAdmin() {
         if (sadmins.deleteSuperAdmin() == 1)
-            return new ResponseEntity<String>("Super Admin deactivated", HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>("Super Admin deactivated", HttpStatus.NO_CONTENT);
         else
-            return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -56,13 +56,13 @@ public class superAdminAuth {
     public ResponseEntity<String> raiseQuery(@RequestBody Map<String, String> q) {
         int status = sadmins.saveQuery(q);
         if (status == 1)
-            return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
+            return new ResponseEntity<>("Query raised.", HttpStatus.CREATED);
         else if (status == -1)
-            return new ResponseEntity<String>("Invalid room id", HttpStatus.CONFLICT);
+            return new ResponseEntity<>("Invalid room id", HttpStatus.CONFLICT);
         else if (status == -2)
-            return new ResponseEntity<String>("Name or description not provided", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Name or description not provided", HttpStatus.BAD_REQUEST);
         else
-            return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**

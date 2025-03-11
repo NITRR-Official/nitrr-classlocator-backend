@@ -39,8 +39,9 @@ public class superAdminService extends comService {
             if (getSAdmin.isPresent()) {
                 superAdmin sAdmin = (superAdmin) authorization(1, user.get("password")).get("sadmin");
                 sAdmin.setName(user.get("name"));
-                if (user.get("new_pass") != null && !user.get("new_pass").isEmpty()) {
-                    sAdmin.setPassword(passwordEncoder.encode(user.get("new_pass")));
+                String pass = "new_pass";
+                if (user.get(pass) != null && !user.get(pass).isEmpty()) {
+                    sAdmin.setPassword(passwordEncoder.encode(user.get(pass)));
                 }
                 sadminRe.save(sAdmin);
                 log.info("Super Admin Updated successfully");
@@ -76,7 +77,15 @@ public class superAdminService extends comService {
 
     public int deleteSuperAdmin() {
         try {
-            sadminRe.deleteById(1);
+            superAdmin sAdmin = sadminRe.findById(1).orElse(null);
+            if (sAdmin != null) {
+                sAdmin.setActive(false);
+                sadminRe.save(sAdmin);
+            }
+            else {
+                log.warn("Super Admin not found for deactivation.");
+                throw new NullPointerException();
+            }
             log.info("Super Admin deactivated");
             return 1;
         } catch (Exception e) {
@@ -92,7 +101,7 @@ public class superAdminService extends comService {
             return new ArrayList<>();
         } catch (Exception e) {
             System.out.println(e.toString());
-            return new ArrayList<trash>();
+            return new ArrayList<>();
         }
     }
 

@@ -45,14 +45,14 @@ public class adminAuth {
             int rollno = Integer.parseInt(authentication.getName());
             int status = admins.saveQuery(q, rollno);
             if (status == 1)
-                return new ResponseEntity<String>("Query raised.", HttpStatus.CREATED);
+                return new ResponseEntity<>("Query raised.", HttpStatus.CREATED);
             else if (status == -1)
-                return new ResponseEntity<String>("Invalid room id", HttpStatus.CONFLICT);
+                return new ResponseEntity<>("Invalid room id", HttpStatus.CONFLICT);
             else if (status == -2)
-                return new ResponseEntity<String>("Name or description not provided", HttpStatus.BAD_REQUEST);
-            return new ResponseEntity<String>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>("Name or description not provided", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            return new ResponseEntity<String>("Invalid roll no", HttpStatus.CONFLICT);
+            return new ResponseEntity<>("Invalid roll no", HttpStatus.CONFLICT);
         }
     }
 

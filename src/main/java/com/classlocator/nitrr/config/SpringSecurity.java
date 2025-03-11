@@ -2,7 +2,6 @@ package com.classlocator.nitrr.config;
 
 import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -26,13 +25,6 @@ import jakarta.servlet.http.HttpServletResponse;
 @EnableWebSecurity
 @Profile("dev")
 public class SpringSecurity {
-
-    @Autowired
-    private UserDetailsImpl adminUserDetailsImpl;
-
-    @Autowired
-    private jwtFilter jwtfilter;
-
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint = new CustomAuthenticationEntryPoint();
 
     /**
@@ -96,7 +88,7 @@ public class SpringSecurity {
                         .requestMatchers("/requests/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/request/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
-                .addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new jwtFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e -> e.authenticationEntryPoint(customAuthenticationEntryPoint))
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(https -> {
@@ -121,7 +113,7 @@ public class SpringSecurity {
     @Bean
     AuthenticationManager authManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
-        auth.userDetailsService(adminUserDetailsImpl).passwordEncoder(passwordEncoder());
+        auth.userDetailsService(new UserDetailsImpl()).passwordEncoder(passwordEncoder());
         return auth.build();
     }
 
