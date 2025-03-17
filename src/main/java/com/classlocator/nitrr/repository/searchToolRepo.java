@@ -8,6 +8,6 @@ import com.classlocator.nitrr.entity.searchTool;
  *  
  * Extends MongoRepository to provide built-in database interaction methods.  
  */
-public interface searchToolRepo extends MongoRepository<searchTool, Integer> {
+public interface SearchToolRepo extends MongoRepository<searchTool, Integer> {
 
 }

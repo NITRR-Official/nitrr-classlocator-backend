@@ -95,7 +95,7 @@ public class jwtService {
             SecretKey sKey = keyGenerator.generateKey();
             secretKey = Base64.getEncoder().encodeToString(sKey.getEncoded());
         } catch (NoSuchAlgorithmException e) {
-            System.out.print(e.toString()); //To be added in log file
+            log.error("Construction for JWT fails: ");
         }
     }
 
@@ -110,7 +110,7 @@ public class jwtService {
      */
     public String generateToken(String rollno, String name, String department, String role) {
         log.info("Generating the token for user {}, role {} : ", rollno, role);
-        Map<String, Object> claims = new HashMap<String, Object>();
+        Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         claims.put("name", name);
         claims.put("department", department);

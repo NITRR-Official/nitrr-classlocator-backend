@@ -9,6 +9,6 @@ import com.classlocator.nitrr.entity.superAdmin;
  *  
  * Extends MongoRepository to provide built-in database interaction methods.  
  */
-public interface superAdminRepo extends MongoRepository<superAdmin, Integer> {
+public interface SuperAdminRepo extends MongoRepository<superAdmin, Integer> {
     
 }
