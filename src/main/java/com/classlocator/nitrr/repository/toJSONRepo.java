@@ -10,6 +10,6 @@ import com.classlocator.nitrr.entity.toJSON;
  *  
  * Extends MongoRepository to provide built-in database interaction methods.  
  */
-public interface toJSONRepo extends MongoRepository<toJSON, ObjectId> {
+public interface ToJSONRepo extends MongoRepository<toJSON, ObjectId> {
     
 }

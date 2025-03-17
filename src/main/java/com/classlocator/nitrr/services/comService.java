@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import com.classlocator.nitrr.interfaces.Pair;
 import java.nio.file.Paths;
@@ -25,11 +26,11 @@ import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.entity.searchTool;
 import com.classlocator.nitrr.entity.superAdmin;
 import com.classlocator.nitrr.entity.toJSON;
-import com.classlocator.nitrr.repository.adminRepo;
-import com.classlocator.nitrr.repository.queryRepo;
-import com.classlocator.nitrr.repository.searchToolRepo;
-import com.classlocator.nitrr.repository.superAdminRepo;
-import com.classlocator.nitrr.repository.toJSONRepo;
+import com.classlocator.nitrr.repository.AdminRepo;
+import com.classlocator.nitrr.repository.QueryRepo;
+import com.classlocator.nitrr.repository.SearchToolRepo;
+import com.classlocator.nitrr.repository.SuperAdminRepo;
+import com.classlocator.nitrr.repository.ToJSONRepo;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,30 +40,45 @@ import org.json.simple.parser.JSONParser;
 
 @Service
 @Slf4j
-public class comService {
+class comService {
     // here isapproved, getAllQueries, saveQuery, authorization
 
     @Autowired
-    private searchToolRepo search;
+    private SearchToolRepo search;
 
     @Autowired
-    private toJSONRepo searchTool;
+    private ToJSONRepo searchTool;
 
     @Autowired
     private AuthenticationManager authManager;
 
     @Autowired
-    protected adminRepo adminRe;
+    protected AdminRepo adminRe;
 
     @Autowired
-    protected queryRepo queryR;
+    protected QueryRepo queryR;
 
     @Autowired
-    protected superAdminRepo sadminRe;
+    protected SuperAdminRepo sadminRe;
 
     @Autowired
     protected jwtService jwt;
 
+    private static final String ROOM_ID = "Roomid";
+
+    private static final String QUERY = "query";
+
+    private static final String ERROR = "error";
+
+    protected static final String NAME = "name";
+    protected static final String RNAME = "name";
+    protected static final String DESC = "description";
+    protected static final String DETAIL = "details";
+    protected static final String EMAIL  = "email";
+    protected static final String PASSWORD = "password";
+    protected static final String NEW_PASS = "new_pass";
+    protected static final String[] ROLES  = {"SUPER_ADMIN", "ADMIN"};
+    protected static final String[] SMALL_ROLES  = {"sadmin", "admin"};
     protected static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // The rollBack/deleteTrash/recoverQueries/rejectQueries to be applied later
@@ -177,7 +193,7 @@ public class comService {
         Map<String, query> status = new HashMap<>();
         Map<String, Integer> error = new HashMap<>();
         try {
-            Integer room = Integer.parseInt(q.get("Roomid"));
+            Integer room = Integer.parseInt(q.get(ROOM_ID));
             String roll = rollno.toString();
 
             Optional<query> exists = queryR.findFirstByRoomidAndRaisedBy(room, roll);
@@ -185,32 +201,49 @@ public class comService {
 
             raiser.setRaisedBy(roll);
             raiser.setRoomid(room);
-            raiser.setName(infoCheck(q.get("name")));
-            raiser.setDescription(infoCheck(q.get("description")));
+            raiser.setName(infoCheck(q.get(RNAME)));
+            raiser.setDescription(infoCheck(q.get(DESC)));
 
             LocalDateTime currentDate = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             raiser.setDate(currentDate.format(formatter));
 
             queryR.save(raiser);
-            status.put("query", raiser);
-            log.info("Query for room {} saved into roll number {} successfully.", q.get("Roomid"), roll);
+            status.put(QUERY, raiser);
+            log.info("Query for room {} saved into roll number {} successfully.", q.get(ROOM_ID), roll);
             return status;
         } catch (NumberFormatException e) {
-            error.put("error", -1);
-            log.error("Invalid room id {} by {} :", q.get("Roomid") ,rollno, e);
+            error.put(ERROR, -1);
+            log.error("Invalid room id {} by {} :", q.get(ROOM_ID) ,rollno, e);
             return error;
         } catch (NullPointerException e) {
-            error.put("error", -2);
-            log.error("Missing required fields for room id {} by {} :", q.get("Roomid") ,rollno, e);
+            error.put(ERROR, -2);
+            log.error("Missing required fields for room id {} by {} :", q.get(ROOM_ID) ,rollno, e);
             return error;
         } catch (Exception e) {
-            error.put("error", -3);
-            log.error("Internal server error by {} for room id {} :", rollno, q.get("Roomid"), e);
+            error.put(ERROR, -3);
+            log.error("Internal server error by {} for room id {} :", rollno, q.get(ROOM_ID), e);
             return error;
         }
     }
 
+    private void searchToolsGeneratorHelper(Object key, JSONObject jsonObject, query q) {
+        try {
+            String id = (String) key;
+            JSONObject valueObj = (JSONObject) jsonObject.get(id);
+            searchTool s = new searchTool();
+            s.setId(Integer.parseInt(id));
+
+            s.getData()
+                    .add(new Pair<>(q.getId(),
+                            new Pair<>(valueObj.get(RNAME).toString(),
+                                    valueObj.get(DETAIL).toString())));
+
+            search.save(s);
+        } catch (Exception e) {
+            log.error("Failed to insert data for room {} :", key, e.getMessage());
+        }
+    }
     /**
      * Updates the search tool in MongoDB after a query is approved and generates a new map.
      *
@@ -230,7 +263,7 @@ public class comService {
              * If not, generate the search tool using searchToolsGenerator().
              */
 
-            if (!(search.count() > 0)) {
+            if (search.count() <= 0) {
                 boolean status = searchToolsGenerator();
                 if (!status) {
                     log.error("Failed to generate search tool collection.");
@@ -245,8 +278,8 @@ public class comService {
             searchTool temp = room.isPresent() ? room.get() : new searchTool();
 
             /* Step 3: Add the new query information to the searchTool's data list. */
-            temp.getData().add(new Pair<ObjectId, Pair<String, String>>(q.getId(),
-                    new Pair<String, String>(q.getName(), q.getDescription())));
+            temp.getData().add(new Pair<>(q.getId(),
+                    new Pair<>(q.getName(), q.getDescription())));
             temp.setId(q.getRoomid());
 
             /*
@@ -338,7 +371,7 @@ public class comService {
             jsonOutput.put("version", versions);
 
             for (searchTool room : rooms) {
-                List<Pair<ObjectId, Pair<String, String>>> dataArray = croom.getId() == room.getId() ? croom.getData()
+                List<Pair<ObjectId, Pair<String, String>>> dataArray = Objects.equals(croom.getId(), room.getId()) ? croom.getData()
                         : room.getData();
 
                 if (dataArray == null || dataArray.isEmpty()) {
@@ -349,8 +382,8 @@ public class comService {
                 String details = dataArray.get(dataArray.size() - 1).getValue().getValue();
 
                 JSONObject entry = new JSONObject();
-                entry.put("name", name);
-                entry.put("details", details);
+                entry.put(RNAME, name);
+                entry.put(DETAIL , details);
 
                 jsonOutput.put(room.getId().toString(), entry);
             }
@@ -387,21 +420,7 @@ public class comService {
             JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(file));
 
             for (Object key : jsonObject.keySet()) {
-                try {
-                    String id = (String) key;
-                    JSONObject valueObj = (JSONObject) jsonObject.get(id);
-                    searchTool s = new searchTool();
-                    s.setId(Integer.parseInt(id));
-
-                    s.getData()
-                            .add(new Pair<ObjectId, Pair<String, String>>(q.getId(),
-                                    new Pair<String, String>(valueObj.get("name").toString(),
-                                            valueObj.get("details").toString())));
-
-                    search.save(s);
-                } catch (Exception e) {
-                    log.error("Failed to insert data for room {} :", key, e.getMessage());
-                }
+                searchToolsGeneratorHelper(key, jsonObject, q);
             }
             return true;
         } catch (Exception e) {
@@ -447,22 +466,22 @@ public class comService {
                 .authenticate(new UsernamePasswordAuthenticationToken(rollno.toString(), password));
         boolean authStatus = auth.isAuthenticated();
 
-        Map<String, Object> attributes = new HashMap<String, Object>();
+        Map<String, Object> attributes = new HashMap<>();
         if (authStatus) {
             if (auth.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .anyMatch(role -> role.equals("ROLE_SUPER_ADMIN"))) {
+                    .anyMatch(role -> role.equals("ROLE_"+ROLES[0]))) {
                 superAdmin suser = sadminRe.findById(rollno).get();
-                attributes.put("sadmin", suser);
+                attributes.put(SMALL_ROLES[0], suser);
                 log.info("Super admin {} authorized successfully.", rollno);
                 return attributes;
             }
 
             if (auth.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .anyMatch(role -> role.equals("ROLE_ADMIN"))) {
+                    .anyMatch(role -> role.equals("ROLE_"+ROLES[1]))) {
                 admin auser = adminRe.findByrollno(rollno);
-                attributes.put("admin", auser);
+                attributes.put(SMALL_ROLES[1], auser);
                 log.info("Admin {} authorized successfully.", rollno);
                 return attributes;
             }
@@ -485,17 +504,17 @@ public class comService {
         Map<String, ?> activity = processQuery(q, 1);
         try {
             superAdmin suser = sadminRe.findById(1).get();
-            query temp = (query) activity.get("query");
+            query temp = (query) activity.get(QUERY);
             if (temp == null) {
-                log.warn("Query for {} not processed successfully.", q.get("Roomid"));
-                return (int) activity.get("error");
+                log.warn("Query for {} not processed successfully.", q.get(ROOM_ID));
+                return (int) activity.get(ERROR);
             }
             suser.getPendingQueries().add(temp);
             sadminRe.save(suser);
-            log.info("Query for {} saved successfully.", q.get("Roomid"));
+            log.info("Query for {} saved successfully.", q.get(ROOM_ID));
             return 1;
         } catch (Exception e) {
-            log.error("Internal server error for {} :", q.get("Roomid"), e); 
+            log.error("Internal server error for {} :", q.get(ROOM_ID), e); 
             return -3;
         }
     }
@@ -513,7 +532,6 @@ public class comService {
      */
     public int saveQuery(Map<String, String> q, Integer rollno) {
         Map<String, ?> activity = processQuery(q, rollno);
-
         try {
             admin user = adminRe.findByrollno(rollno);
             if (user == null)
@@ -522,20 +540,20 @@ public class comService {
                 return -3;
             }
 
-            query temp = (query) activity.get("query");
+            query temp = (query) activity.get(QUERY);
             if (temp == null) {
-                log.warn("Query for {} not processed successfully.", q.get("Roomid"));
-                return (int) activity.get("error");
+                log.warn("Query for {} not processed successfully.", q.get(ROOM_ID));
+                return (int) activity.get(ERROR);
             }
 
             user.getPendingQueries().add(temp);
             rejectQueries(false, 0); // This will be applied later
 
             adminRe.save(user);
-            log.info("Query for {} room raised by {} saved successfully.", q.get("Roomid"), rollno);
+            log.info("Query for {} room raised by {} saved successfully.", q.get(ROOM_ID), rollno);
             return 1;
         } catch (Exception e) {
-            log.error("Internal server error for room {} by {} :", q.get("Roomid"), rollno, e);
+            log.error("Internal server error for room {} by {} :", q.get(ROOM_ID), rollno, e);
             return -3;
         }
     }
@@ -560,17 +578,17 @@ public class comService {
                 mapVer = mapp.getMapVersion();
                 log.info("Map version {} downloaded successfully.", mapVer);
                 if (mapVer == version) {
-                    return new Pair<Integer, String>(0, null);
+                    return new Pair<>(0, null);
                 } else {
-                    return new Pair<Integer, String>(1, mapp.getSearchTool());
+                    return new Pair<>(1, mapp.getSearchTool());
                 }
             } else {
                 log.warn("No map found in the database, please contact super admin immediately.");
-                return new Pair<Integer, String>(-2, null);
+                return new Pair<>(-2, null);
             }
         } catch (Exception e) {
             log.error("Internal server error while updating the map version {}.", version, e);
-            return new Pair<Integer, String>(-3, null);
+            return new Pair<>(-3, null);
         }
     }
 

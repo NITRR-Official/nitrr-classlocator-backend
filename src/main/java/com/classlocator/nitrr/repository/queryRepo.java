@@ -14,7 +14,7 @@ import com.classlocator.nitrr.entity.query;
  *  
  * Extends MongoRepository to provide built-in database interaction methods.  
  */
-public interface queryRepo extends MongoRepository<query, ObjectId> {
+public interface QueryRepo extends MongoRepository<query, ObjectId> {
 
     /**  
      * Finds the first query by Room ID and the user who raised it, sorted by `_id`.  
@@ -24,7 +24,7 @@ public interface queryRepo extends MongoRepository<query, ObjectId> {
      * @return Optional<query> - Returns the first matching query, if found.  
      */
     @Query(value = "{ 'Roomid': ?0, 'raisedBy': ?1 }", sort = "{ '_id': 1 }")
-    Optional<query> findFirstByRoomidAndRaisedBy(Integer Roomid, String raisedBy);
+    Optional<query> findFirstByRoomidAndRaisedBy(Integer roomId, String raisedBy);
 
     /**  
      * Finds all queries raised by a specific user and their approval status by the super admin.  

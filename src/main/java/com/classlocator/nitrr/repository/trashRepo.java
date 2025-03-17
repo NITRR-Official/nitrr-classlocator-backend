@@ -10,6 +10,6 @@ import com.classlocator.nitrr.entity.trash;
  *  
  * Extends MongoRepository to provide built-in database interaction methods.  
  */
-public interface trashRepo extends MongoRepository<trash, ObjectId> {
+public interface TrashRepo extends MongoRepository<trash, ObjectId> {
     
 }

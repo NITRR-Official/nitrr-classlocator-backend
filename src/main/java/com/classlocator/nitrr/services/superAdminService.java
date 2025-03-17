@@ -9,16 +9,16 @@ import java.util.Optional;
 import org.bson.types.ObjectId;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
-
 import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.entity.superAdmin;
 import com.classlocator.nitrr.entity.trash;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class superAdminService extends comService {
+
+    private static final Integer ID = 1;
 
     /**
      * Saves or updates the Super Admin account based on existence.
@@ -32,30 +32,40 @@ public class superAdminService extends comService {
      *         and -3 for other errors.
      */
 
+    private int setSuperAdmin(superAdmin sAdmin, Map<String, String> user) {
+        try {
+            sAdmin.setId(ID);
+            sAdmin.setName(user.get(NAME));
+            sAdmin.setEmail(user.get(EMAIL));
+            sAdmin.setPassword(passwordEncoder.encode(user.get(PASSWORD)));
+            sAdmin.setRoles(Arrays.asList(ROLES[0]));
+            sAdmin.setActive(true);
+            sadminRe.save(sAdmin);
+            log.info("Super Admin Activated successfully");
+            return 1;
+        } catch (Exception e) {
+            return -3;
+        }
+    }
+
     public int saveUpdateSuperAdmin(Map<String, String> user) {
         try {
-            Optional<superAdmin> getSAdmin = sadminRe.findById(1);
-
+            Optional<superAdmin> getSAdmin = sadminRe.findById(ID);
             if (getSAdmin.isPresent()) {
-                superAdmin sAdmin = (superAdmin) authorization(1, user.get("password")).get("sadmin");
-                sAdmin.setName(user.get("name"));
-                String pass = "new_pass";
-                if (user.get(pass) != null && !user.get(pass).isEmpty()) {
-                    sAdmin.setPassword(passwordEncoder.encode(user.get(pass)));
+                if(!getSAdmin.get().isActive()) {
+                    return setSuperAdmin(getSAdmin.get(), user);
+                }
+                superAdmin sAdmin = (superAdmin) authorization(ID, user.get(PASSWORD)).get(SMALL_ROLES[0]);
+                sAdmin.setName(user.get(NAME));
+                sAdmin.setEmail(user.get(EMAIL));
+                if (user.get(NEW_PASS) != null && !user.get(NEW_PASS).isEmpty()) {
+                    sAdmin.setPassword(passwordEncoder.encode(user.get(NEW_PASS)));
                 }
                 sadminRe.save(sAdmin);
                 log.info("Super Admin Updated successfully");
                 return 0;
             }
-
-            superAdmin suser = new superAdmin();
-            suser.setId(1);
-            suser.setName(user.get("name"));
-            suser.setPassword(passwordEncoder.encode(user.get("password")));
-            suser.setRoles(Arrays.asList("SUPER_ADMIN"));
-            sadminRe.save(suser);
-            log.info("Super Admin Activated successfully");
-            return 1;
+            return setSuperAdmin(new superAdmin(), user);
         } catch (BadCredentialsException e) {
             log.error("Invalid password for super admin", e);
             return -1;
@@ -77,7 +87,7 @@ public class superAdminService extends comService {
 
     public int deleteSuperAdmin() {
         try {
-            superAdmin sAdmin = sadminRe.findById(1).orElse(null);
+            superAdmin sAdmin = sadminRe.findById(ID).orElse(null);
             if (sAdmin != null) {
                 sAdmin.setActive(false);
                 sadminRe.save(sAdmin);

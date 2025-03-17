@@ -10,7 +10,7 @@ import com.classlocator.nitrr.entity.admin;
  *  
  * Extends MongoRepository to provide built-in database interaction methods.  
  */
-public interface adminRepo extends MongoRepository<admin, ObjectId> {
+public interface AdminRepo extends MongoRepository<admin, ObjectId> {
 
     /**  
      * Finds an admin by their roll number.  
