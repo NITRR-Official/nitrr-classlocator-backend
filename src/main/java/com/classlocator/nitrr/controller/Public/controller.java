@@ -69,7 +69,7 @@ public class controller {
      *         (INTERNAL_SERVER_ERROR).
      */
     @GetMapping("/download/{version}")
-    public ResponseEntity<?> map(@PathVariable("version") Integer version) {
+    public ResponseEntity<?> map(@PathVariable Integer version) {
         Pair<Integer, String> download = admins.downloadMap(version);
         if (download.getKey() == 1) {
             return new ResponseEntity<>(download.getValue(), HttpStatus.OK);

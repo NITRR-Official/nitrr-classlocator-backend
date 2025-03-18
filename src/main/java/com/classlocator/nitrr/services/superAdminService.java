@@ -8,7 +8,6 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.stereotype.Service;
 
 import com.classlocator.nitrr.config.validate;

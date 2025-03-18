@@ -61,7 +61,7 @@ public class SpringSecurity {
 
             response.setContentType("application/json");
             response.setStatus(httpResponse);
-            response.getWriter().write(String.format("{\"error\":\"%s\"}", error));
+            response.getWriter().write("{\"error\":\"%s\"}".formatted(error));
             response.getWriter().flush();
         }
     }

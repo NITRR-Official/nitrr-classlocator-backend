@@ -2,6 +2,7 @@ package com.classlocator.nitrr.services;
 
 import java.io.File;
 import java.io.FileReader;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -11,8 +12,6 @@ import java.util.Objects;
 import java.util.Optional;
 import com.classlocator.nitrr.interfaces.Pair;
 import com.classlocator.nitrr.interfaces.constants;
-
-import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -400,7 +399,7 @@ public class comService {
      */
     public boolean searchToolsGenerator() {
         String relativePath = "src/main/resources/templates/searchTool.json";
-        File file = Paths.get(relativePath).toFile();
+        File file = Path.of(relativePath).toFile();
         query q = new query();
 
         try {

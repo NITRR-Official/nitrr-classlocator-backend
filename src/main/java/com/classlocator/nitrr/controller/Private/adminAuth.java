@@ -70,7 +70,7 @@ public class adminAuth {
      *         - 409 CONFLICT: If the roll number is invalid.
      */
     @PostMapping("/vote")
-    public ResponseEntity<String> voting(@RequestParam("id") String id) {
+    public ResponseEntity<String> voting(@RequestParam String id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         try {
             int rollno = Integer.parseInt(authentication.getName());
