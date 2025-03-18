@@ -1,13 +1,9 @@
 package com.classlocator.nitrr.services;
-
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -90,13 +86,7 @@ public class jwtService {
      * Initializes `secretKey` with a Base64-encoded secret key.  
      */
     public jwtService() {
-        try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey sKey = keyGenerator.generateKey();
-            secretKey = Base64.getEncoder().encodeToString(sKey.getEncoded());
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Construction for JWT fails: ");
-        }
+        secretKey = System.getProperty("SECRET_KEY");
     }
 
     /**  
@@ -114,10 +104,9 @@ public class jwtService {
         claims.put("role", role);
         claims.put("name", name);
         claims.put("department", department);
-        return Jwts.builder().claims().add(claims)
+        return Jwts.builder().claims(claims)
                 .subject(rollno).issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 30))
-                .and()
+                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 30))
                 .signWith(getKey())
                 .compact();
     }

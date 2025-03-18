@@ -7,7 +7,7 @@
     <appender name = "fileAppender" class = "ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/Classlocator.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>Classlocator.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>logs/Classlocator.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>10MB</maxFileSize>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
