@@ -109,14 +109,14 @@ public class jwtService {
      * @return String - The generated JWT token.  
      */
     public String generateToken(String rollno, String name, String department, String role) {
-        log.info("Generating the token for user {}, role {} : ", rollno, role);
+        log.info("Generating the token for user {}, role {}", rollno, role);
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         claims.put("name", name);
         claims.put("department", department);
         return Jwts.builder().claims().add(claims)
                 .subject(rollno).issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 24 * 30 * 1000))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 30))
                 .and()
                 .signWith(getKey())
                 .compact();
@@ -141,7 +141,7 @@ public class jwtService {
      * @return boolean - True if the token is valid, otherwise false.  
      */
     public boolean validateToken(String token, UserDetails userDetails) {
-        log.info("Validating the token for user {} : ", userDetails.getUsername());
+        log.info("Validating the token for user {}", userDetails.getUsername());
         final String userName = extractRoll(token);
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.classlocator.nitrr.entity.superAdmin;
+import com.classlocator.nitrr.interfaces.constants;
 import com.classlocator.nitrr.services.superAdminService;
 
 //This will expose the super admin endpoints to be used by the frontend to be developed by other team members
@@ -30,6 +31,7 @@ public class superAdminController extends controller {
      * success,
      * or an appropriate error response on failure.
      * Requires super admin authorization to access.
+     * 
      * @param suser Map<String, String> - A map containing Super Admin details
      *              (name, password).
      * @return ResponseEntity<?> - Returns a JWT token on success or an error
@@ -42,12 +44,12 @@ public class superAdminController extends controller {
         if (status == 1 || status == 0) {
             String action = status == 1 ? "Super Admin created" : "Super Admin updated";
             HttpStatus httpStatus = status == 1 ? HttpStatus.CREATED : HttpStatus.OK;
-            token.put(action, jwt.generateToken("1", suser.get("name"), "NIT Raipur", "SUPER_ADMIN"));
+            token.put(action, jwt.generateToken("1", suser.get(constants.NAME), "NIT Raipur", constants.getRoles()[0]));
             return new ResponseEntity<>(token, httpStatus);
         } else if (status == -1)
-            return new ResponseEntity<>("Wrong password", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Wrong password or details were not provided", HttpStatus.UNAUTHORIZED);
         else if (status == -2)
-            return new ResponseEntity<>("Unauthorized", HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("Unauthorized or details were not provided", HttpStatus.FORBIDDEN);
         return new ResponseEntity<>("Something went wrong...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -55,6 +57,7 @@ public class superAdminController extends controller {
      * Authenticates a Super Admin and returns a JWT token on successful login,
      * or an appropriate error response if authentication fails.
      * Requires super admin authorization to access.
+     * 
      * @param s Map<String, String> - A map containing login credentials (roll
      *          number, password).
      * @return ResponseEntity<?> - Returns a JWT token on success or an error
@@ -64,13 +67,14 @@ public class superAdminController extends controller {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> s) {
         try {
-            superAdmin status = (superAdmin) sadmins.authorization(1, s.get("password"))
-                    .get("sadmin");
-            token.put("Token ",
-                    jwt.generateToken(status.getId().toString(), status.getName(), "NIT Raipur", "SUPER_ADMIN"));
+            superAdmin status = (superAdmin) sadmins.authorization(1, s.get(constants.PASSWORD))
+                    .get(constants.SMALL_ROLES.get(0));
+            token.put("Token",
+                    jwt.generateToken(status.getId().toString(), status.getName(), "NIT Raipur",
+                            constants.getRoles()[0]));
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (BadCredentialsException e) {
-            return new ResponseEntity<>("Wrong password", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Wrong password or super admin not activated", HttpStatus.UNAUTHORIZED);
         } catch (NullPointerException e) {
             return new ResponseEntity<>("Not allowed", HttpStatus.FORBIDDEN);
         } catch (Exception e) {

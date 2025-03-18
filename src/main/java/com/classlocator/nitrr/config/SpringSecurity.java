@@ -79,7 +79,7 @@ public class SpringSecurity {
      * @throws Exception If an error occurs while configuring security settings.
      */
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, jwtFilter jwtfilter) throws Exception {
 
         http
                 .authorizeHttpRequests(auth -> auth
@@ -88,7 +88,7 @@ public class SpringSecurity {
                         .requestMatchers("/requests/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/request/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
-                .addFilterBefore(new jwtFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e -> e.authenticationEntryPoint(customAuthenticationEntryPoint))
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(https -> {
@@ -111,9 +111,9 @@ public class SpringSecurity {
      * @throws Exception If an error occurs during authentication manager setup.
      */
     @Bean
-    AuthenticationManager authManager(HttpSecurity http) throws Exception {
+    AuthenticationManager authManager(HttpSecurity http, UserDetailsImpl adminUserDetailsImpl) throws Exception {
         AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
-        auth.userDetailsService(new UserDetailsImpl()).passwordEncoder(passwordEncoder());
+        auth.userDetailsService(adminUserDetailsImpl).passwordEncoder(passwordEncoder());
         return auth.build();
     }
 

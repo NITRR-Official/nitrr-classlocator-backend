@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.classlocator.nitrr.entity.admin;
+import com.classlocator.nitrr.interfaces.constants;
 import com.classlocator.nitrr.services.adminService;
 
 //This will expose the admin endpoints to be used by the frontend
@@ -39,9 +40,9 @@ public class adminController extends controller {
 
             String action = status == 1 ? "created" : "updated";
             HttpStatus httpStatus = status == 1 ? HttpStatus.CREATED : HttpStatus.OK;
-            token.put(action, jwt.generateToken(user.get("rollno"),
-                    user.get("name"),
-                    user.get("department"), "ADMIN"));
+            token.put(action, jwt.generateToken(user.get(constants.ROLL_NO),
+                    user.get(constants.NAME),
+                    user.get(constants.DEPT), constants.getRoles()[1]));
             return new ResponseEntity<>(token, httpStatus);
         } else if (status == -1)
             return new ResponseEntity<>("Wrong username or password", HttpStatus.FORBIDDEN);
@@ -60,10 +61,10 @@ public class adminController extends controller {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> s) {
         try {
-            admin status = (admin) admins.authorization(Integer.parseInt(s.get("rollno")), s.get("password"))
-                    .get("admin");
+            admin status = (admin) admins.authorization(Integer.parseInt(s.get(constants.ROLL_NO)), s.get(constants.PASSWORD))
+                    .get(constants.SMALL_ROLES.get(1));
             token.put("Token", jwt.generateToken(status.getRollno().toString(), status.getName(),
-                    status.getDepartment(), status.getRoles().get(0)));
+                    status.getDepartment(), constants.getRoles()[1]));
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (BadCredentialsException e) {
             return new ResponseEntity<>("Wrong username or password", HttpStatus.UNAUTHORIZED);

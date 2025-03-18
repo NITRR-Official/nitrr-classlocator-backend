@@ -45,7 +45,7 @@ public class superAdmin {
     private String name = "Super Admin";
 
     @NonNull
-    private Integer phone;
+    private String phone;
 
     @NonNull 
     private String email;

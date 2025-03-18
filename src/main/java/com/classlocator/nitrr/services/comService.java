@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import com.classlocator.nitrr.interfaces.Pair;
+import com.classlocator.nitrr.interfaces.constants;
+
 import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +42,7 @@ import org.json.simple.parser.JSONParser;
 
 @Service
 @Slf4j
-class comService {
+public class comService {
     // here isapproved, getAllQueries, saveQuery, authorization
 
     @Autowired
@@ -64,21 +66,7 @@ class comService {
     @Autowired
     protected jwtService jwt;
 
-    private static final String ROOM_ID = "Roomid";
-
-    private static final String QUERY = "query";
-
-    private static final String ERROR = "error";
-
-    protected static final String NAME = "name";
-    protected static final String RNAME = "name";
-    protected static final String DESC = "description";
-    protected static final String DETAIL = "details";
-    protected static final String EMAIL  = "email";
-    protected static final String PASSWORD = "password";
-    protected static final String NEW_PASS = "new_pass";
-    protected static final String[] ROLES  = {"SUPER_ADMIN", "ADMIN"};
-    protected static final String[] SMALL_ROLES  = {"sadmin", "admin"};
+    
     protected static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // The rollBack/deleteTrash/recoverQueries/rejectQueries to be applied later
@@ -193,7 +181,7 @@ class comService {
         Map<String, query> status = new HashMap<>();
         Map<String, Integer> error = new HashMap<>();
         try {
-            Integer room = Integer.parseInt(q.get(ROOM_ID));
+            Integer room = Integer.parseInt(q.get(constants.ROOM_ID));
             String roll = rollno.toString();
 
             Optional<query> exists = queryR.findFirstByRoomidAndRaisedBy(room, roll);
@@ -201,28 +189,28 @@ class comService {
 
             raiser.setRaisedBy(roll);
             raiser.setRoomid(room);
-            raiser.setName(infoCheck(q.get(RNAME)));
-            raiser.setDescription(infoCheck(q.get(DESC)));
+            raiser.setName(infoCheck(q.get(constants.RNAME)));
+            raiser.setDescription(infoCheck(q.get(constants.DESC)));
 
             LocalDateTime currentDate = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             raiser.setDate(currentDate.format(formatter));
 
             queryR.save(raiser);
-            status.put(QUERY, raiser);
-            log.info("Query for room {} saved into roll number {} successfully.", q.get(ROOM_ID), roll);
+            status.put(constants.QUERY, raiser);
+            log.info("Query for room {} saved into roll number {} successfully.", q.get(constants.ROOM_ID), roll);
             return status;
         } catch (NumberFormatException e) {
-            error.put(ERROR, -1);
-            log.error("Invalid room id {} by {} :", q.get(ROOM_ID) ,rollno, e);
+            error.put(constants.ERROR, -1);
+            log.error("Invalid room id {} by {} :", q.get(constants.ROOM_ID) ,rollno, e);
             return error;
         } catch (NullPointerException e) {
-            error.put(ERROR, -2);
-            log.error("Missing required fields for room id {} by {} :", q.get(ROOM_ID) ,rollno, e);
+            error.put(constants.ERROR, -2);
+            log.error("Missing required fields for room id {} by {} :", q.get(constants.ROOM_ID) ,rollno, e);
             return error;
         } catch (Exception e) {
-            error.put(ERROR, -3);
-            log.error("Internal server error by {} for room id {} :", rollno, q.get(ROOM_ID), e);
+            error.put(constants.ERROR, -3);
+            log.error("Internal server error by {} for room id {} :", rollno, q.get(constants.ROOM_ID), e);
             return error;
         }
     }
@@ -236,8 +224,8 @@ class comService {
 
             s.getData()
                     .add(new Pair<>(q.getId(),
-                            new Pair<>(valueObj.get(RNAME).toString(),
-                                    valueObj.get(DETAIL).toString())));
+                            new Pair<>(valueObj.get(constants.RNAME).toString(),
+                                    valueObj.get(constants.DETAIL).toString())));
 
             search.save(s);
         } catch (Exception e) {
@@ -382,8 +370,8 @@ class comService {
                 String details = dataArray.get(dataArray.size() - 1).getValue().getValue();
 
                 JSONObject entry = new JSONObject();
-                entry.put(RNAME, name);
-                entry.put(DETAIL , details);
+                entry.put(constants.RNAME, name);
+                entry.put(constants.DETAIL , details);
 
                 jsonOutput.put(room.getId().toString(), entry);
             }
@@ -470,18 +458,18 @@ class comService {
         if (authStatus) {
             if (auth.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .anyMatch(role -> role.equals("ROLE_"+ROLES[0]))) {
+                    .anyMatch(role -> role.equals("ROLE_"+constants.getRoles()[0]))) {
                 superAdmin suser = sadminRe.findById(rollno).get();
-                attributes.put(SMALL_ROLES[0], suser);
+                attributes.put(constants.SMALL_ROLES.get(0), suser);
                 log.info("Super admin {} authorized successfully.", rollno);
                 return attributes;
             }
 
             if (auth.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .anyMatch(role -> role.equals("ROLE_"+ROLES[1]))) {
+                    .anyMatch(role -> role.equals("ROLE_"+constants.getRoles()[1]))) {
                 admin auser = adminRe.findByrollno(rollno);
-                attributes.put(SMALL_ROLES[1], auser);
+                attributes.put(constants.SMALL_ROLES.get(1), auser);
                 log.info("Admin {} authorized successfully.", rollno);
                 return attributes;
             }
@@ -504,17 +492,17 @@ class comService {
         Map<String, ?> activity = processQuery(q, 1);
         try {
             superAdmin suser = sadminRe.findById(1).get();
-            query temp = (query) activity.get(QUERY);
+            query temp = (query) activity.get(constants.QUERY);
             if (temp == null) {
-                log.warn("Query for {} not processed successfully.", q.get(ROOM_ID));
-                return (int) activity.get(ERROR);
+                log.warn("Query for {} not processed successfully.", q.get(constants.ROOM_ID));
+                return (int) activity.get(constants.ERROR);
             }
             suser.getPendingQueries().add(temp);
             sadminRe.save(suser);
-            log.info("Query for {} saved successfully.", q.get(ROOM_ID));
+            log.info("Query for {} saved successfully.", q.get(constants.ROOM_ID));
             return 1;
         } catch (Exception e) {
-            log.error("Internal server error for {} :", q.get(ROOM_ID), e); 
+            log.error("Internal server error for {} :", q.get(constants.ROOM_ID), e); 
             return -3;
         }
     }
@@ -540,20 +528,20 @@ class comService {
                 return -3;
             }
 
-            query temp = (query) activity.get(QUERY);
+            query temp = (query) activity.get(constants.QUERY);
             if (temp == null) {
-                log.warn("Query for {} not processed successfully.", q.get(ROOM_ID));
-                return (int) activity.get(ERROR);
+                log.warn("Query for {} not processed successfully.", q.get(constants.ROOM_ID));
+                return (int) activity.get(constants.ERROR);
             }
 
             user.getPendingQueries().add(temp);
             rejectQueries(false, 0); // This will be applied later
 
             adminRe.save(user);
-            log.info("Query for {} room raised by {} saved successfully.", q.get(ROOM_ID), rollno);
+            log.info("Query for {} room raised by {} saved successfully.", q.get(constants.ROOM_ID), rollno);
             return 1;
         } catch (Exception e) {
-            log.error("Internal server error for room {} by {} :", q.get(ROOM_ID), rollno, e);
+            log.error("Internal server error for room {} by {} :", q.get(constants.ROOM_ID), rollno, e);
             return -3;
         }
     }
