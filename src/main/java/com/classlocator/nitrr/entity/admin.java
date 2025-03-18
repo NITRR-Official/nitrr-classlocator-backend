@@ -11,6 +11,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.mongodb.lang.NonNull;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -22,6 +24,8 @@ import lombok.NoArgsConstructor;
  * password, name, department, and associated queries.
  */
 @Document(collection = "admin")
+@AllArgsConstructor
+@Builder
 @NoArgsConstructor
 @Data
 public class admin {
@@ -40,21 +44,26 @@ public class admin {
     private String password;
 
     /** Name of the admin. */
-    private String name;
+    @Builder.Default
+    private String name = "NA";
 
     /** Department to which the admin belongs. */
-    private String department;
+    @Builder.Default
+    private String department = "NA";
 
     /** Queries that are pending approval. */
     @DBRef
+    @Builder.Default
     private HashSet<query> pendingQueries = new HashSet<>();
 
     /** Queries that have been accepted. */
     @DBRef
+    @Builder.Default
     private HashSet<query> acceptedQueries = new HashSet<>();
 
     /** Queries that have been moved to trash. */
     @DBRef
+    @Builder.Default
     private HashSet<trash> trashedQueries = new HashSet<>();
 
     /** Roles assigned to the admin (e.g., ADMIN, SUPER_ADMIN). */

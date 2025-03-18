@@ -1,13 +1,9 @@
 package com.classlocator.nitrr.services;
-
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -90,13 +86,7 @@ public class jwtService {
      * Initializes `secretKey` with a Base64-encoded secret key.  
      */
     public jwtService() {
-        try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey sKey = keyGenerator.generateKey();
-            secretKey = Base64.getEncoder().encodeToString(sKey.getEncoded());
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Construction for JWT fails: ");
-        }
+        secretKey = System.getProperty("SECRET_KEY");
     }
 
     /**  
@@ -109,15 +99,14 @@ public class jwtService {
      * @return String - The generated JWT token.  
      */
     public String generateToken(String rollno, String name, String department, String role) {
-        log.info("Generating the token for user {}, role {} : ", rollno, role);
+        log.info("Generating the token for user {}, role {}", rollno, role);
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         claims.put("name", name);
         claims.put("department", department);
-        return Jwts.builder().claims().add(claims)
+        return Jwts.builder().claims(claims)
                 .subject(rollno).issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 24 * 30 * 1000))
-                .and()
+                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 30))
                 .signWith(getKey())
                 .compact();
     }
@@ -141,7 +130,7 @@ public class jwtService {
      * @return boolean - True if the token is valid, otherwise false.  
      */
     public boolean validateToken(String token, UserDetails userDetails) {
-        log.info("Validating the token for user {} : ", userDetails.getUsername());
+        log.info("Validating the token for user {}", userDetails.getUsername());
         final String userName = extractRoll(token);
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

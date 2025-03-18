@@ -12,17 +12,34 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
+import com.classlocator.nitrr.config.validate;
 import com.classlocator.nitrr.entity.admin;
 import com.classlocator.nitrr.entity.query;
 import com.classlocator.nitrr.entity.trash;
+import com.classlocator.nitrr.interfaces.constants;
 
 @Service
 public class adminService extends comService {
 
     private static final Logger logger = LoggerFactory.getLogger(adminService.class);
 
-    private static final String ROLL_NO = "rollno";
-    private static final String DEPT = "department";
+    private int newAdmin(Map<String, String> user, int rollno) {
+        admin temp = new admin();
+        temp.setRollno(rollno);
+        temp.setName(user.get(constants.NAME));
+        temp.setDepartment(user.get(constants.DEPT));
+        temp.setPassword(passwordEncoder.encode(user.get(constants.PASSWORD)));
+        temp.setRoles(Arrays.asList(constants.getRoles()[1]));
+        if (validate.admin(user)) {
+            adminRe.save(temp);
+            logger.info("Admin Created successfully");
+            return 1;
+        } else {
+            logger.error("Invalid details for admin");
+            throw new BadCredentialsException("Invalid details");
+        }
+    }
+
     /**
      * Saves or updates an admin user based on roll number;
      * returns 1 for new admin, 2 for update, and negative values for errors.
@@ -31,40 +48,43 @@ public class adminService extends comService {
      */
     public int saveUpdateNewAdmin(Map<String, String> user) {
         try {
-            int rollno = Integer.parseInt(user.get(ROLL_NO));
+            int rollno = Integer.parseInt(user.get(constants.ROLL_NO));
             if (rollno == 1)
                 throw new NullPointerException();
             admin temp = adminRe.findByrollno(rollno);
             if (temp != null) {
-                temp = (admin) authorization(rollno, user.get(PASSWORD)).get(SMALL_ROLES[1]);
-                temp.setName(user.get(NAME));
-                temp.setDepartment(user.get(DEPT));
-                if (user.get(NEW_PASS) != null && !user.get(NEW_PASS).isEmpty()) {
-                    temp.setPassword(passwordEncoder.encode(user.get(NEW_PASS)));
+                temp = (admin) authorization(rollno, user.get(constants.PASSWORD)).get(constants.SMALL_ROLES.get(1));
+                temp.setName(user.get(constants.NAME));
+                temp.setDepartment(user.get(constants.DEPT));
+                if (user.get(constants.NEW_PASS) != null) {
+                    if (!validate.newPass(user.get(constants.NEW_PASS))) {
+                        logger.error("Invalid new password for admin");
+                        throw new BadCredentialsException("Invalid new password");
+                    }
+                    temp.setPassword(passwordEncoder.encode(user.get(constants.NEW_PASS)));
                 }
-                adminRe.save(temp);
-                return 2;
+                if (validate.admin(user)) {
+                    adminRe.save(temp);
+                    logger.info("Admin Updated successfully");
+                    return 2;
+                } else {
+                    logger.error("Invalid details for admin");
+                    throw new BadCredentialsException("Invalid details");
+                }
             }
 
-            temp = new admin();
-            temp.setRollno(rollno);
-            temp.setName(user.get(NAME));
-            temp.setDepartment(user.get(DEPT));
-            temp.setPassword(passwordEncoder.encode(user.get(PASSWORD)));
-            temp.setRoles(Arrays.asList(ROLES[1]));
-            adminRe.save(temp);
-            return 1;
+            return newAdmin(user, rollno);
         } catch (BadCredentialsException e) {
-            logger.error("Invalid roll number or password {} :", user.get(ROLL_NO), e);
+            logger.error("Invalid roll number or password {} :", user.get(constants.ROLL_NO), e);
             return -1;
         } catch (NullPointerException e) {
-            logger.error("User {} not authorized",user.get(ROLL_NO), e);
+            logger.error("User {} not authorized", user.get(constants.ROLL_NO), e);
             return -1;
         } catch (NumberFormatException e) {
-            logger.error("Invalid roll number {}", user.get(ROLL_NO), e);
+            logger.error("Invalid roll number {}", user.get(constants.ROLL_NO), e);
             return -2;
         } catch (Exception e) {
-            logger.error("Internal server error by {}",user.get(ROLL_NO), e);
+            logger.error("Internal server error by {}", user.get(constants.ROLL_NO), e);
             return -3;
         }
     }
@@ -75,7 +95,7 @@ public class adminService extends comService {
             admin a = adminRe.findByrollno(rollno);
             return a.getTrashedQueries();
         } catch (Exception e) {
-            logger.error("Internal Server error by {}",rollno, e);
+            logger.error("Internal Server error by {}", rollno, e);
             return new HashSet<>();
         }
     }

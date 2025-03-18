@@ -2,6 +2,7 @@ package com.classlocator.nitrr.services;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,19 +11,26 @@ import org.springframework.stereotype.Component;
 
 import com.classlocator.nitrr.entity.admin;
 import com.classlocator.nitrr.entity.superAdmin;
+import com.classlocator.nitrr.repository.AdminRepo;
+import com.classlocator.nitrr.repository.SuperAdminRepo;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class UserDetailsImpl extends comService implements UserDetailsService {
+public class UserDetailsImpl implements UserDetailsService {
+    @Autowired
+    private AdminRepo adminRe;
+    @Autowired
+    private SuperAdminRepo sadminRe;
+
     /**
      * Loads a user by their roll number and returns UserDetails.
      * 
      * @param rollno String - The roll number of the user to be loaded.
      * @return UserDetails - Returns the user details if found in either
      *         superAdmin or admin repository.
-     * @throws UsernameNotFoundException - Thrown if the roll number does not match
+     * @throws UsernameNotFoundException Thrown if the roll number does not match
      *                                   any user in the system.
      */
 
@@ -34,13 +42,14 @@ public class UserDetailsImpl extends comService implements UserDetailsService {
          * password, and roles
          * for super admin
          */
-        Optional<superAdmin> suser = sadminRe.findById(Integer.parseInt(rollno));
-
+        
         /**
          * UserDetails - Returns the constructed UserDetails object containing username,
          * password, and roles
          * for admin
          */
+        Optional<superAdmin> suser = sadminRe.findById(Integer.parseInt(rollno));
+
         admin user = adminRe.findByrollno(Integer.parseInt(rollno));
 
         if (suser.isPresent() && suser.get().isActive()) {
