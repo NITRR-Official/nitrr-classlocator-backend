@@ -36,8 +36,8 @@ Before running the project, ensure you have the following installed:
 2️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/danujkumar/classlocator-backend.git
-cd classlocator-backend
+git clone https://github.com/NITRR-Official/nitrr-classlocator-backend.git
+cd nitrr-classlocator-backend
 ```
 
 3️⃣ Configure Environment Variables
@@ -229,9 +229,10 @@ pkill -f ClassLocator
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `name` | `string` | **Optional** |
-| `password` | `string` | **Required** |
+| `password` | `string` | **Required (Standard password)** |
+| `email` | `string` | **Required (Valid email only)** |
+| `phone` | `string` | **Required (10 digits only)** |
 | `new_pass` | `string` | **Optional** |
-| `department` | `string` | **Optional** |
 
 - Expected Output
   - If new user registers, JWT token generated
