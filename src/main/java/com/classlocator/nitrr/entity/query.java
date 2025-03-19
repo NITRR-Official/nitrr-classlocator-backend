@@ -45,6 +45,11 @@ public class query {
     @NonNull
     private String name;
 
+    /** Getter method to return the query ID as a string, overriding lombok default's one*/
+    public String getId() {
+        return id.toHexString();
+    }
+
     /** Description of the issue or request. */
     @NonNull
     private String description;

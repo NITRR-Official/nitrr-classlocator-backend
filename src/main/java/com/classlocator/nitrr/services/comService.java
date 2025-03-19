@@ -222,7 +222,7 @@ public class comService {
             s.setId(Integer.parseInt(id));
 
             s.getData()
-                    .add(new Pair<>(q.getId(),
+                    .add(new Pair<>(new ObjectId(q.getId()),
                             new Pair<>(valueObj.get(constants.RNAME).toString(),
                                     valueObj.get(constants.DETAIL).toString())));
 
@@ -265,7 +265,7 @@ public class comService {
             searchTool temp = room.isPresent() ? room.get() : new searchTool();
 
             /* Step 3: Add the new query information to the searchTool's data list. */
-            temp.getData().add(new Pair<>(q.getId(),
+            temp.getData().add(new Pair<>(new ObjectId(q.getId()),
                     new Pair<>(q.getName(), q.getDescription())));
             temp.setId(q.getRoomid());
 
