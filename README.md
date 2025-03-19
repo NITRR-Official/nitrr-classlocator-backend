@@ -536,11 +536,11 @@ Each query contains an ID, date, description, raisedBy, and status.
 - List of all possible errors that may occur after successful authorization
   - Error Code: **409 (CONFLICT)**
     - **APIs affected:**
-      * /request/raiseQuery
-      * /request/vote?id={}
-      * /requests/raiseQuery
-      * /admin/signup
-      * /admin/login
+      * `/request/raiseQuery`
+      * `/request/vote?id={}`
+      * `/requests/raiseQuery`
+      * `/admin/signup`
+      * `/admin/login`
     - **Possible Causes:**
       * Invalid Roll number or room number
     - **Solutions:**
@@ -548,10 +548,10 @@ Each query contains an ID, date, description, raisedBy, and status.
 
   - Error Code: **400 (BAD_REQUEST)**
     - **APIs affected:**
-      * /request/raiseQuery
-      * /request/vote?id={}
-      * /requests/raiseQuery
-      * /requests/approve
+      * `/request/raiseQuery`
+      * `/request/vote?id={}`
+      * `/requests/raiseQuery`
+      * `/requests/approve`
     - **Possible Causes:**
       * Name or description of room not provided
       * Query not found
@@ -560,7 +560,7 @@ Each query contains an ID, date, description, raisedBy, and status.
 
   - Error Code: **406 (NOT_ACCEPTABLE)**
     - **APIs affected:**
-      * /request/vote?id={}
+      * `/request/vote?id={}`
     - **Possible Causes:**
       * Raised user can't vote
     - **Solutions:**
@@ -568,33 +568,49 @@ Each query contains an ID, date, description, raisedBy, and status.
 
   - Error Code: **403 (FORBIDDEN)**
     - **APIs affected:**
-      * /admin/signup
-      * /admin/login
-      * /sadmin/signup
-      * /sadmin/login
+      * `/admin/signup`
+      * `/admin/login`
+      * `/sadmin/signup`
+      * `/sadmin/login`
     - **Possible Causes:**
       * Wrong password or not allowed for super admins.
       * Wrong roll number or password for admins.
     - **Solutions:**
       * Please provide the correct credentails
-      * It should be **{"rollno":"12345678", "password":"something", "name":"name_here", "department":"something"}** for admin signup.
-      * It should be **{"name":"name_here", "password":"something", "email":"a@g.com", "phone":"9876543210"}** for super admin signup.
-      * Super admin should only provide password and admin need to provide rollno and password in /login endpoint.
+      * Admin Signup
+        ```bash
+        {
+            "rollno":"12345678",
+            "password":"something",
+            "name":"name_here",
+            "department":"something"
+        }
+        ```
+      * Super Admin Signup 
+        ```bash
+        {
+            "name":"name_here", 
+            "password":"something", 
+            "email":"a@g.com", 
+            "phone":"9876543210"
+        }
+        ```
+      * The super admin should only provide a password, whereas the admin needs to provide both a roll number and a password in the `/login` endpoint.
 
   - Error Code: **401 (UNAUTHORIZED)**
     - **APIs affected:**
-      * /admin/signup
-      * /admin/login
-      * /sadmin/signup
-      * /sadmin/login
+      * `/admin/signup`
+      * `/admin/login`
+      * `/sadmin/signup`
+      * `/sadmin/login`
     - **Possible Causes and solutions:**
       * Same as above **403 (FORBIDDEN).**
 
   - Error Code: **501 (NOT_IMPLEMENTED)**
     - **APIs affected:**
-      * /requests/approve
-      * /generate
-      * /download/{}
+      * `/requests/approve`
+      * `/generate`
+      * `/download/{}`
     - **Possible Causes:**
       * Map generation or creation related.
     - **Solutions:**
