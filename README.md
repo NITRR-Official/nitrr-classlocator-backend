@@ -137,7 +137,7 @@ pkill -f ClassLocator
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `rollno` | `number` | **Required:** 8 digit roll number |
-| `password` | `string` | **Required** |
+| `password` | `string` | **Required (Standard Password)** |
 | `name` | `string` | **Optional** |
 | `new_pass` | `string` | **Optional** |
 | `department` | `string` | **Optional** |
@@ -356,25 +356,29 @@ Each query contains an ID, date, description, raisedBy, and status.
     "Others": {
         "Pending": [
             {
-                "id": {
-                    "timestamp": 1739119651,
-                    "date": "2025-02-09T16:47:31.000+00:00"
-                },
-                "date": "2025-02-09 22:17:31",
-                "name": "S49",
+                "id": "67a8dc23b8dbdc4115b442b9",
+                "date": "2025-03-19 00:40:37",
+                "name": "S50",
                 "description": "It is new.",
                 "raisedBy": "1",
                 "votes": {},
                 "superAdmin": false,
                 "Roomid": 119
+            },
+            {
+                "id": "67d9bc372ddce30dc1817fec",
+                "date": "2025-03-19 00:06:49",
+                "name": "New name 3",
+                "description": "Something 3",
+                "raisedBy": "21116038",
+                "votes": {},
+                "superAdmin": false,
+                "Roomid": 195
             }
         ],
         "Accepted": [
             {
-                "id": {
-                    "timestamp": 1739119153,
-                    "date": "2025-02-09T16:39:13.000+00:00"
-                },
+                "id": "67a8da31b8dbdc4115b442ad",
                 "date": "2025-02-09 22:15:41",
                 "name": "S47",
                 "description": "It is new.",
@@ -389,10 +393,7 @@ Each query contains an ID, date, description, raisedBy, and status.
         "Pending": [],
         "Accepted": [
             {
-                "id": {
-                    "timestamp": 1739106140,
-                    "date": "2025-02-09T13:02:20.000+00:00"
-                },
+                "id": "67a8a75ca3760922dd256a1a",
                 "date": "2025-02-09 18:33:09",
                 "name": "New name",
                 "description": "Something 3",
@@ -402,10 +403,7 @@ Each query contains an ID, date, description, raisedBy, and status.
                 "Roomid": 95
             },
             {
-                "id": {
-                    "timestamp": 1739106214,
-                    "date": "2025-02-09T13:03:34.000+00:00"
-                },
+                "id": "67a8a7a6a3760922dd256a1b",
                 "date": "2025-02-13 22:12:27",
                 "name": "New name 3",
                 "description": "Something 3",
@@ -492,32 +490,35 @@ Each query contains an ID, date, description, raisedBy, and status.
 #### Authorization and Authentication errors
 
 - Error Code : **406 (NOT_ACCEPTABLE)**
-  - Token not matched or expired
-  - Output:
+  - Token not matched or expired.
+  - **Output:**
 
     ```bash
     Invalid Token
     ```
+  - **Solution:** Login again then get the new token.
 
 - Error Code : **401 (UNAUTHORIZED)**
-  - Wrong user name password
-  - Output:
+  - Wrong id or password.
+  - **Output:**
 
     ```bash
     Invalid Username or Password
     ```
+  - **Solution:** Provide correct id and password (for admin it is rollno and for super admin it is 1).
 
 - Error Code : **400 (BAD REQUEST)**
-  - No Authorization either login or token provided
-  - Output:
+  - No Authorization either login or token provided.
+  - **Output:**
 
     ```bash
     No Auth Used
     ```
+  - **Solution:** Get the proper authorization either login form or token.
 
 - Error Code : **403 (FORBIDDEN)**
   - Authentication successful but may be accessing non-permitted APIs
-  - Output:
+  - **Output:**
 
     ```bash
     {
@@ -528,69 +529,100 @@ Each query contains an ID, date, description, raisedBy, and status.
         "path": "/dev/request/raiseQuery"
     }
     ```
+  - **Solution:** Admin should not access super admin and vice-versa.
 
 #### APIs Specific errors
 
 - List of all possible errors that may occur after successful authorization
   - Error Code: **409 (CONFLICT)**
-    - APIs affected:
-      - /request/raiseQuery
-      - /request/vote?id={}
-      - /requests/raiseQuery
-      - /admin/signup
-      - /admin/login
-    - Possible Causes:
-      - Invalid Roll number or room number
+    - **APIs affected:**
+      * `/request/raiseQuery`
+      * `/request/vote?id={}`
+      * `/requests/raiseQuery`
+      * `/admin/signup`
+      * `/admin/login`
+    - **Possible Causes:**
+      * Invalid Roll number or room number
+    - **Solutions:**
+      * Provide valid Roll number and room number and do not include any other character.
 
   - Error Code: **400 (BAD_REQUEST)**
-    - APIs affected:
-      - /request/raiseQuery
-      - /request/vote?id={}
-      - /requests/raiseQuery
-      - /requests/approve
-    - Possible Causes:
-      - Name or description of room not provided
-      - Query not found
+    - **APIs affected:**
+      * `/request/raiseQuery`
+      * `/request/vote?id={}`
+      * `/requests/raiseQuery`
+      * `/requests/approve`
+    - **Possible Causes:**
+      * Name or description of room not provided
+      * Query not found
+    - **Solutions:**
+      * Provide both, if description is not present simply pass empty string **("")**. 
 
   - Error Code: **406 (NOT_ACCEPTABLE)**
-    - APIs affected:
-      - /request/vote?id={}
-    - Possible Causes:
-      - Raised user can't vote
+    - **APIs affected:**
+      * `/request/vote?id={}`
+    - **Possible Causes:**
+      * Raised user can't vote
+    - **Solutions:**
+      * Do not vote on your own queries as simple as that.
 
   - Error Code: **403 (FORBIDDEN)**
-    - APIs affected:
-      - /admin/signup
-      - /admin/login
-      - /sadmin/signup
-      - /sadmin/login
-    - Possible Causes:
-      - Wrong password or not allowed for super admins.
-      - Wrong roll number or password for admins.
+    - **APIs affected:**
+      * `/admin/signup`
+      * `/admin/login`
+      * `/sadmin/signup`
+      * `/sadmin/login`
+    - **Possible Causes:**
+      * Wrong password or not allowed for super admins.
+      * Wrong roll number or password for admins.
+    - **Solutions:**
+      * Please provide the correct credentails
+      * Admin Signup
+        ```bash
+        {
+            "rollno":"12345678",
+            "password":"something",
+            "name":"name_here",
+            "department":"something"
+        }
+        ```
+      * Super Admin Signup 
+        ```bash
+        {
+            "name":"name_here", 
+            "password":"something", 
+            "email":"a@g.com", 
+            "phone":"9876543210"
+        }
+        ```
+      * The super admin should only provide a password, whereas the admin needs to provide both a roll number and a password in the `/login` endpoint.
 
   - Error Code: **401 (UNAUTHORIZED)**
-    - APIs affected:
-      - /admin/signup
-      - /admin/login
-      - /sadmin/signup
-      - /sadmin/login
-    - Possible Causes:
-      - Wrong password or not allowed for super admins.
-      - Wrong roll number or password for admins.
+    - **APIs affected:**
+      * `/admin/signup`
+      * `/admin/login`
+      * `/sadmin/signup`
+      * `/sadmin/login`
+    - **Possible Causes and solutions:**
+      * Same as above **403 (FORBIDDEN).**
 
   - Error Code: **501 (NOT_IMPLEMENTED)**
-    - APIs affected:
-      - /requests/approve
-      - /generate
-      - /download/{}
-    - Possible Causes:
-      - Map generation or creation related, please contact the developer.
+    - **APIs affected:**
+      * `/requests/approve`
+      * `/generate`
+      * `/download/{}`
+    - **Possible Causes:**
+      * Map generation or creation related.
+    - **Solutions:**
+      * Please contact the developer.
 
   - Error Code: **500 (INTERNAL_SERVER_ERROR)**
-    - APIs affected:
-      - All APIs are affected
-    - Possible Causes:
-      - Some unauthorized access to the database, maybe hacking, contact developer immediately.
+    - **APIs affected:**
+      * All APIs are affected
+    - **Possible Causes:**
+      * Some unauthorized access to the database, maybe hacking.
+    - **Solutions:**
+      * Please contact the developer immediately.
 
 ## Deployment
 
@@ -642,7 +674,6 @@ function App() {
 - Option to reject the query and send it to trash.
 - Recover the queries and to rollback the map.
 - Deactivate the admin account.
-- Handling Super Admin raised queries efficiently.
 
 ### Your feedbacks
 
@@ -651,4 +682,4 @@ function App() {
 
 ## Support
 
-For support, email <anuj.as828@gmail.com> or follow me on GitHub.
+For support, email <elexcode404@gmail.com> or follow us on GitHub.
